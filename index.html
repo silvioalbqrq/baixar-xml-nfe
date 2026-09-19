@@ -16,6 +16,15 @@
 </head>
 <body class="text-slate-800 pb-12">
 
+<!-- Aviso quando aberto no GitHub Pages (demonstracao, sem backend).
+     O site roda SOMENTE local via iniciar_xml.bat + backend.py. -->
+<div id="avisoGithub" class="hidden max-w-6xl mx-auto px-4 sm:px-8 mt-4">
+  <div class="bg-red-50 border-l-4 border-red-600 p-4 rounded-r-2xl text-sm text-red-950">
+    <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>RODA SOMENTE LOCAL — esta página no GitHub é só demonstração.</p>
+    <p class="mt-1">Para usar de verdade, no Windows: baixe o repositório, instale <strong>Python 3.12+ + Google Chrome</strong> e dê <strong>duplo-clique em <code class="bg-red-100 px-1 rounded">iniciar_xml.bat</code></strong> (abre <code>http://127.0.0.1:8002/</code>). O BUSCAR / lote / download só funcionam com o backend local ligado. Regras completas no README do repositório.</p>
+  </div>
+</div>
+
 <!-- Aviso quando aberto por duplo-clique direto no arquivo (file://).
      Navegador nao permite HTML executar .bat, entao orienta a usar o launcher. -->
 <div id="avisoArquivo" class="hidden max-w-6xl mx-auto px-4 sm:px-8 mt-4">
@@ -32,6 +41,9 @@
 <script>
 (function () {
   try {
+    if (location.hostname.indexOf('github.io') !== -1) {
+      document.getElementById('avisoGithub').classList.remove('hidden');
+    }
     if (location.protocol === 'file:') {
       document.getElementById('avisoArquivo').classList.remove('hidden');
       // Se o usuario rodou o .bat depois, esta aba migra sozinha p/ o site local.

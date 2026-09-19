@@ -1,5 +1,13 @@
 # Baixar XML de NF-e / CT-e pela Chave — Site Local
 
+> ⚠️ **RODA SOMENTE LOCAL — REGRAS DE USO**
+>
+> - Este projeto **não funciona só abrindo no GitHub Pages**. A página https://silvioalbqrq.github.io/baixar-xml-nfe/ é **apenas vitrine/demonstração**.
+> - Para usar de verdade: **baixe/clone este repositório no Windows**, instale **Python 3.12+ + Google Chrome** e dê **duplo-clique em `iniciar_xml.bat`** (abre `http://127.0.0.1:8002/`).
+> - O backend local (`backend.py` + Selenium + Chrome automatizado) é **obrigatório**: ele faz Buscar → Cloudflare → Baixar XML → Nova Consulta no MeuDanfe.
+> - **Não suba** `xml_baixados/` (seus XMLs fiscais) nem `chrome-perfil-xml/` (perfil do robô, ~75 MB) para o GitHub — já estão no `.gitignore`.
+> - Confira XMLs críticos no portal oficial da SEFAZ e respeite os termos do MeuDanfe.
+
 Site **100% local** que automatiza o passo a passo do [meudanfe.com.br](https://meudanfe.com.br/): colar a **chave de acesso de 44 dígitos** → **Buscar** → passar pelo **Cloudflare** → **Baixar XML** → **Nova Consulta**. Suporta chave única e **lote via CSV/TXT**.
 
 > ⚠️ O MeuDanfe usa proteção Cloudflare/Turnstile — por isso não dá para fazer tudo só no navegador (CORS + captcha). Este projeto usa um **backend local com Chrome automatizado (Selenium + undetected-chromedriver)**.
