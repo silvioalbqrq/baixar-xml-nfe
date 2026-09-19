@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baixar XML de NF-e / CT-e pela Chave — Site Local</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
+  .drop-active { border-color: #0f172a !important; background: #e2e8f0 !important; }
+  .step-num { width: 28px; height: 28px; border-radius: 9999px; background: #0f172a; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+  #log { max-height: 150px; overflow-y: auto; }
+  input.mono { font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body class="text-slate-800 pb-12">
+
+<!-- Aviso quando aberto por duplo-clique direto no arquivo (file://).
+     Navegador nao permite HTML executar .bat, entao orienta a usar o launcher. -->
+<div id="avisoArquivo" class="hidden max-w-6xl mx-auto px-4 sm:px-8 mt-4">
+  <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-2xl text-sm text-amber-950">
+    <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Você abriu o arquivo direto (sem backend).</p>
+    <p class="mt-1">O navegador bloqueia que um <code>.html</code> execute o <code>.bat</code>, então faça assim:</p>
+    <ol class="list-decimal ml-5 mt-1 space-y-1">
+      <li>Feche esta aba e dê <strong>duplo-clique</strong> em <code class="bg-amber-100 px-1 rounded">Abrir Site Local</code> (atalho) ou em <code class="bg-amber-100 px-1 rounded">iniciar_xml.bat</code> — ele <strong>liga o backend e abre o navegador padrão</strong> sozinho.</li>
+      <li>Se o backend já estiver ligado, <a href="http://127.0.0.1:8002/" class="font-bold underline">clique aqui para abrir o site local</a>.</li>
+    </ol>
+    <p id="aguardoBackend" class="mt-2 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>Aguardando o backend iniciar… se você já rodou o .bat, aguarde aqui que esta aba vai sozinha para o site.</p>
+  </div>
+</div>
+<script>
+(function () {
+  try {
+    if (location.protocol === 'file:') {
+      document.getElementById('avisoArquivo').classList.remove('hidden');
+      // Se o usuario rodou o .bat depois, esta aba migra sozinha p/ o site local.
+      var tent = 0, el = document.getElementById('aguardoBackend');
+      var timer = setInterval(function () {
+        tent++;
+        if (tent > 90) {
+          clearInterval(timer);
+          if (el) el.innerHTML = 'Backend não respondeu após 3 min. Verifique a janela preta do iniciar_xml.bat (ela mostra onde travou).';
+          return;
+        }
+        fetch('http://127.0.0.1:8002/api/status', { mode: 'no-cors', cache: 'no-store' })
+          .then(function () { clearInterval(timer); location.replace('http://127.0.0.1:8002/'); })
+          .catch(function () {});
+      }, 2000);
+    }
+  } catch (e) {}
+})();
+</script>
+
+<header class="bg-[#0f172a] text-white py-8 px-4 sm:px-8 shadow">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-3 md:items-center">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-file-code text-3xl"></i>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-extrabold">Baixar XML de NF-e / CT-e pela Chave</h1>
+        <p class="text-sm text-slate-400">Site <strong>100% local</strong> — automatiza o meudanfe.com.br: Buscar → Cloudflare → Baixar XML → Nova Consulta</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-xs">
+      <span class="px-2 py-1 rounded-lg bg-emerald-700 text-white font-bold"><i class="fa-solid fa-house-laptop mr-1"></i>LOCAL</span>
+      <span id="backendStatus" class="px-2 py-1 rounded-full bg-slate-700 text-slate-200">verificando…</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
+
+  <!-- Passo a passo (igual aos prints) -->
+  <div class="bg-white rounded-2xl border border-slate-200 p-5 text-sm">
+    <h2 class="font-bold mb-3"><i class="fa-solid fa-list-ol mr-1"></i>Passo-a-passo (igual ao manual no MeuDanfe)</h2>
+    <div class="grid md:grid-cols-5 gap-3 text-xs text-slate-600">
+      <div class="border rounded-xl p-3"><span class="step-num">1</span><p class="mt-2"><strong>Acessar</strong> <code>https://meudanfe.com.br</code> e colar a <strong>chave de 44 dígitos</strong> no campo <em>Buscar NFe e Gerar DANFE</em>.</p></div>
+      <div class="border rounded-xl p-3"><span class="step-num">2</span><p class="mt-2">Clicar em <strong class="text-white bg-green-600 px-2 py-0.5 rounded">BUSCAR</strong>. O robô faz isso sozinho.</p></div>
+      <div class="border rounded-xl p-3"><span class="step-num">3</span><p class="mt-2">Aguardar o <strong>“Verificando… Cloudflare”</strong>. Na 1ª vez marque <strong>Sou humano</strong> no Chrome que o robô abrir.</p></div>
+      <div class="border rounded-xl p-3"><span class="step-num">4</span><p class="mt-2">Clicar em <strong class="text-white bg-red-700 px-2 py-0.5 rounded">Baixar XML</strong>. Libere <strong>pop-ups</strong> no Chrome.</p></div>
+      <div class="border rounded-xl p-3"><span class="step-num">5</span><p class="mt-2">Clicar em <strong class="text-white bg-blue-500 px-2 py-0.5 rounded">NOVA CONSULTA</strong> ou no botão abaixo p/ próxima chave.</p></div>
+    </div>
+    <div class="mt-3 bg-emerald-50 border-l-4 border-emerald-600 p-3 rounded-r-xl text-xs text-emerald-950">
+      <strong>Site local:</strong> abra sempre pelo <code class="bg-emerald-100 px-1 rounded">iniciar_xml.bat</code>
+      (<code>http://127.0.0.1:8002/</code>). Não feche a janela preta enquanto usar.
+      Na 1ª vez, marque <strong>“Sou humano”</strong> no Chrome que o robô abrir e <strong>libere pop-ups</strong>.
+    </div>
+  </div>
+
+  <!-- Busca única -->
+  <div class="bg-white rounded-2xl border border-slate-200 p-5">
+    <h2 class="font-bold mb-1 text-lg">Buscar NFe e Gerar DANFE</h2>
+    <p class="text-sm text-slate-500 mb-3">Informe abaixo a chave de acesso da NF-e ou CT-e para Baixar o XML:</p>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <input id="chaveInput" maxlength="60" placeholder="Chave de Acesso (44 dígitos)"
+        class="mono flex-1 border border-slate-300 rounded-lg px-4 py-3 text-sm tracking-wide">
+      <button onclick="buscarUma()" id="btnBuscar"
+        class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg text-sm whitespace-nowrap">
+        <i class="fa-solid fa-file-search mr-1"></i>BUSCAR
+      </button>
+    </div>
+    <div id="chaveFeedback" class="text-xs mt-2 text-slate-500">0 / 44 dígitos</div>
+  </div>
+
+  <!-- Lote -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+      <h2 class="font-bold mb-3"><i class="fa-solid fa-file-csv mr-1"></i>Lote: arquivo CSV / TXT</h2>
+      <div id="dropzone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:border-slate-900 transition">
+        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400"></i>
+        <p class="text-sm mt-2">Arraste <strong>.csv ou .txt</strong> aqui ou <span class="font-bold underline">clique p/ selecionar</span></p>
+        <p class="text-xs text-slate-400 mt-1">O site localiza as chaves de 44 dígitos sozinho</p>
+        <input id="fileInput" type="file" accept=".csv,.txt,.CSV,.TXT" multiple class="hidden">
+      </div>
+      <div id="fileInfo" class="text-xs text-slate-500 mt-2"></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-slate-200 p-5">
+      <h2 class="font-bold mb-3"><i class="fa-solid fa-paste mr-1"></i>Lote: colar chaves</h2>
+      <textarea id="pasteArea" rows="5" placeholder="Cole as chaves (uma por linha, ou separadas por ; , espaço)"
+        class="w-full text-xs mono border border-slate-300 rounded-xl p-3"></textarea>
+      <div class="flex gap-2 mt-2">
+        <button onclick="carregarTexto()" class="bg-slate-200 hover:bg-slate-300 text-xs font-bold px-4 py-2 rounded-lg">Carregar texto</button>
+        <button onclick="baixarLote()" id="btnLote" class="bg-[#0f172a] hover:bg-[#1e293b] text-white text-xs font-bold px-4 py-2 rounded-lg" disabled>
+          <i class="fa-solid fa-download mr-1"></i>Baixar lote (<span id="countLote">0</span>)
+        </button>
+      </div>
+      <div id="proximoPasso" class="hidden mt-3 bg-emerald-50 border-l-4 border-emerald-600 p-3 rounded-r-xl text-xs text-emerald-950"></div>
+    </div>
+  </div>
+
+  <!-- Progresso + ações -->
+  <div class="bg-white rounded-2xl border border-slate-200 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-bold"><i class="fa-solid fa-list-check mr-1"></i>Downloads: <span id="countOk">0</span> XML(s)</h2>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="baixarZip()" id="btnZip" class="bg-white border border-slate-300 hover:bg-slate-50 text-xs font-bold px-4 py-2 rounded-lg" disabled>
+          <i class="fa-solid fa-file-zipper mr-1"></i>Baixar tudo (.zip)
+        </button>
+        <button onclick="novaConsulta()" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">
+          <i class="fa-solid fa-arrow-left mr-1"></i>NOVA CONSULTA
+        </button>
+        <button onclick="limparTudo()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-4 py-2 rounded-lg">
+          <i class="fa-solid fa-trash mr-1"></i>Limpar
+        </button>
+      </div>
+    </div>
+    <div class="mt-3">
+      <div class="flex justify-between text-xs text-slate-500 mb-1"><span id="progressLabel">Aguardando…</span><span id="progressPct"></span></div>
+      <div class="h-2 bg-slate-200 rounded-full overflow-hidden"><div id="progressBar" class="h-2 bg-green-600 rounded-full transition-all" style="width:0%"></div></div>
+    </div>
+    <div id="log" class="mt-2 text-xs text-slate-500"></div>
+  </div>
+
+  <!-- Resultado -->
+  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+    <div class="p-4 bg-slate-50 border-b"><h2 class="font-bold"><i class="fa-solid fa-table mr-1"></i>Resultado</h2></div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left">
+        <thead class="bg-slate-900 text-white uppercase text-[11px]">
+          <tr><th class="px-3 py-2">Chave de acesso</th><th class="px-3 py-2 text-center">Modelo</th><th class="px-3 py-2">Status</th><th class="px-3 py-2 text-right">XML</th></tr>
+        </thead>
+        <tbody id="tbody" class="divide-y divide-slate-200"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="text-center text-xs text-slate-400">Site 100% local · Fonte dos XMLs: meudanfe.com.br · Confira XMLs críticos no portal oficial.</footer>
+</main>
+
+<script>
+// SITE LOCAL: frontend e API na mesma origem -> sem URL de backend, sem CORS, sem modo Online.
+const $ = id => document.getElementById(id);
+const soDigitos = s => (s || '').replace(/\D/g, '');
+let RESULTADOS = [];
+
+function dvOk(chave) {
+  if (!/^\d{44}$/.test(chave)) return false;
+  const corpo = chave.slice(0, 43); let soma = 0, peso = 2;
+  for (let i = corpo.length - 1; i >= 0; i--) { soma += (+corpo[i]) * peso; peso = peso < 9 ? peso + 1 : 2; }
+  const resto = soma % 11, calc = (resto === 0 || resto === 1) ? 0 : 11 - resto;
+  return calc === (+chave[43]);
+}
+function validaChave(c) {
+  if (!/^\d{44}$/.test(c)) return 'chave deve ter 44 dígitos';
+  if (!['55','57'].includes(c.slice(20,22))) return 'modelo inválido (posições 21-22 devem ser 55 NF-e ou 57 CT-e)';
+  if (!dvOk(c)) return 'DV inválido — confira a digitação';
+  return null;
+}
+
+function log(msg) {
+  const d = document.createElement('div');
+  d.textContent = new Date().toLocaleTimeString('pt-BR') + ' — ' + msg;
+  $('log').prepend(d);
+}
+async function pingBackend() {
+  try {
+    const r = await fetch('/api/status');
+    if (r.ok) {
+      $('backendStatus').textContent = 'local online';
+      $('backendStatus').className = 'px-2 py-1 rounded-full bg-emerald-600 text-white';
+      return true;
+    }
+  } catch (e) {}
+  $('backendStatus').textContent = 'offline — rode o iniciar_xml.bat';
+  $('backendStatus').className = 'px-2 py-1 rounded-full bg-rose-600 text-white';
+  return false;
+}
+
+// ---------- entrada ----------
+$('chaveInput').addEventListener('input', () => {
+  const c = soDigitos($('chaveInput').value);
+  $('chaveFeedback').textContent = `${c.length} / 44 dígitos` + (c.length === 44 ? (validaChave(c) ? ' — ⚠️ ' + validaChave(c) : ' — ✓ válida') : '');
+});
+$('chaveInput').addEventListener('keydown', e => { if (e.key === 'Enter') buscarUma(); });
+
+const dz = $('dropzone'), fi = $('fileInput');
+dz.onclick = () => fi.click();
+['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drop-active'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drop-active'); }));
+dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) lerArquivos(e.dataTransfer.files); });
+fi.addEventListener('change', () => { if (fi.files.length) { lerArquivos(fi.files); fi.value = ''; } });
+
+function extrairChaves(texto) { return [...new Set(String(texto || '').match(/\d{44}/g) || [])]; }
+function lerArquivos(files) {
+  const lista = [...files].filter(f => /\.(csv|txt)$/i.test(f.name) || !f.name.includes('.'));
+  if (!lista.length) { alert('Selecione .csv ou .txt'); return; }
+  let pend = lista.length;
+  lista.forEach(file => {
+    const rd = new FileReader();
+    rd.onload = () => {
+      const novas = extrairChaves(String(rd.result || ''));
+      const atual = $('pasteArea').value.trim();
+      $('pasteArea').value = (atual ? atual + '\n' : '') + novas.join('\n');
+      $('fileInfo').textContent = `${lista.length} arquivo(s): +${novas.length} chave(s) de ${file.name}`;
+      log(`${file.name}: ${novas.length} chave(s) encontradas.`);
+      if (--pend === 0) { atualizarLote(); orientarProximoPasso('arquivo'); }
+    };
+    rd.readAsText(file, 'UTF-8');
+  });
+}
+function carregarTexto() {
+  atualizarLote();
+  log('Texto carregado: ' + extrairChaves($('pasteArea').value).length + ' chave(s).');
+  orientarProximoPasso('colado');
+}
+function orientarProximoPasso(origem) {
+  const n = extrairChaves($('pasteArea').value).length;
+  const box = $('proximoPasso');
+  if (!n) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = `<strong>✓ ${n} chave(s) pronta(s).</strong> Próximo passo: clique em <strong>Baixar lote</strong> — o robô busca uma por uma no MeuDanfe e os XMLs são baixados automaticamente (acompanhe o progresso abaixo).`;
+  log(`Próximo passo: clique em Baixar lote (${n} chave(s)).`);
+  box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function atualizarLote() {
+  const n = extrairChaves($('pasteArea').value).length;
+  $('countLote').textContent = n;
+  $('btnLote').disabled = n === 0;
+  const box = $('proximoPasso');
+  if (box && !box.classList.contains('hidden') && n === 0) box.classList.add('hidden');
+}
+
+// ---------- ações ----------
+function upsertResultado(r) {
+  const i = RESULTADOS.findIndex(x => x.chave === r.chave);
+  if (i >= 0) RESULTADOS[i] = r; else RESULTADOS.push(r);
+  renderTabela();
+}
+function renderTabela() {
+  const tb = $('tbody'); tb.innerHTML = '';
+  $('countOk').textContent = RESULTADOS.filter(r => r.ok).length;
+  $('btnZip').disabled = !RESULTADOS.some(r => r.ok);
+  if (!RESULTADOS.length) {
+    tb.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">Nenhum XML baixado ainda. Digite a chave e clique em BUSCAR.</td></tr>';
+    return;
+  }
+  for (const r of RESULTADOS) {
+    const modelo = (r.chave || '').slice(20, 22);
+    const modLbl = modelo === '55' ? 'NF-e 55' : modelo === '57' ? 'CT-e 57' : modelo || '—';
+    const status = r.ok
+      ? '<span class="px-2 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800">✓ XML baixado</span>'
+      : `<span class="px-2 py-1 rounded-full font-bold bg-rose-100 text-rose-800" title="${(r.erro || '').replace(/"/g, '')}">✗ ${(r.erro || 'erro').slice(0, 60)}</span>`;
+    const btn = r.ok
+      ? `<a href="/api/nfe/arquivo/${r.chave}" download="nfe_${r.chave}.xml" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-lg whitespace-nowrap"><i class="fa-solid fa-file-code mr-1"></i>Baixar XML</a>`
+      : '<span class="text-slate-300 text-xs">—</span>';
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50';
+    tr.innerHTML = `<td class="px-3 py-2 mono text-[11px]">${r.chave}</td><td class="px-3 py-2 text-center">${modLbl}</td><td class="px-3 py-2">${status}</td><td class="px-3 py-2 text-right">${btn}</td>`;
+    tb.appendChild(tr);
+  }
+}
+function setProgress(pct, label) {
+  $('progressBar').style.width = pct + '%';
+  $('progressPct').textContent = pct + '%';
+  if (label) $('progressLabel').textContent = label;
+}
+
+async function buscarUma() {
+  const c = soDigitos($('chaveInput').value);
+  const err = validaChave(c);
+  if (err) { alert(err); return; }
+  if (!await pingBackend()) { alert('Backend local offline. Rode o iniciar_xml.bat.'); return; }
+  $('btnBuscar').disabled = true;
+  setProgress(10, `Buscando ${c} no MeuDanfe… (aguarde o Cloudflare liberar)`);
+  log(`BUSCAR ${c} …`);
+  try {
+    const r = await fetch(`/api/nfe/xml?chave=${c}&espera=20&timeout_dl=60`);
+    if (!r.ok) {
+      let detalhe = 'HTTP ' + r.status, extra = '';
+      try {
+        const j = await r.clone().json();
+        detalhe = j.erro || detalhe;
+        if (j.tipo) extra += '\nTipo: ' + j.tipo;
+        if (j.dica) extra += '\n' + j.dica;
+      } catch (e) {
+        try { detalhe += ' — ' + (await r.text()).slice(0, 400); } catch (e2) {}
+      }
+      throw new Error(detalhe + extra);
+    }
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `nfe_${c}.xml`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    upsertResultado({ chave: c, ok: true });
+    setProgress(100, `Concluído: XML nfe_${c}.xml baixado.`);
+    log(`OK: nfe_${c}.xml (${blob.size} bytes). Clique em NOVA CONSULTA p/ próxima.`);
+  } catch (e) {
+    const msg = String(e.message || e).slice(0, 800);
+    upsertResultado({ chave: c, ok: false, erro: msg });
+    setProgress(100, 'Falhou — veja o erro na tabela/log.');
+    log('ERRO ' + c + ': ' + msg);
+    alert('Falha ao baixar XML:\n' + msg + '\n\nDiagnóstico: abra http://127.0.0.1:8002/api/diag');
+  } finally {
+    $('btnBuscar').disabled = false;
+  }
+}
+
+async function baixarLote() {
+  const chaves = extrairChaves($('pasteArea').value);
+  if (!chaves.length) { alert('Cole ao menos 1 chave.'); return; }
+  if (!await pingBackend()) { alert('Backend local offline. Rode o iniciar_xml.bat.'); return; }
+  $('btnLote').disabled = true;
+  log(`Lote: ${chaves.length} chave(s)…`);
+  try {
+    setProgress(5, `Baixando lote de ${chaves.length}… (não feche — o robô clica em Nova Consulta a cada chave)`);
+    const r = await fetch('/api/nfe/lote', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chaves, espera_explicita: 20, timeout_download: 60, intervalo: 2, tentativas: 2, headless: false })
+    });
+    const data = await r.json();
+    (data.resultados || []).forEach(upsertResultado);
+    const ok = (data.resultados || []).filter(x => x.ok).length;
+    setProgress(100, `Lote concluído: ${ok}/${chaves.length} XML(s).`);
+    log(`Lote: ${ok} OK, ${chaves.length - ok} falhas. Use "Baixar tudo (.zip)".`);
+    for (const res of (data.resultados || []).filter(x => x.ok)) {
+      const a = document.createElement('a');
+      a.href = `/api/nfe/arquivo/${res.chave}`;
+      a.download = `nfe_${res.chave}.xml`;
+      a.click();
+      await new Promise(rr => setTimeout(rr, 600));
+    }
+  } catch (e) {
+    log('ERRO lote: ' + e);
+    alert('Falha no lote: ' + e);
+  } finally {
+    $('btnLote').disabled = false;
+    atualizarLote();
+  }
+}
+
+async function baixarZip() {
+  const chaves = RESULTADOS.filter(r => r.ok).map(r => r.chave);
+  if (!chaves.length) { alert('Nada p/ zipar.'); return; }
+  log('Gerando .zip com ' + chaves.length + ' XML(s)…');
+  const r = await fetch('/api/nfe/zip', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chaves })
+  });
+  if (!r.ok) { alert('Falha ao gerar ZIP (HTTP ' + r.status + ')'); return; }
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'xml_nfe_lote.zip';
+  a.click();
+  log('ZIP baixado.');
+}
+
+function novaConsulta() {
+  $('chaveInput').value = '';
+  $('chaveFeedback').textContent = '0 / 44 dígitos';
+  setProgress(0, 'Nova consulta — digite a próxima chave.');
+  $('chaveInput').focus();
+  log('Nova consulta pronta.');
+}
+function limparTudo() {
+  RESULTADOS = [];
+  $('pasteArea').value = '';
+  novaConsulta();
+  renderTabela();
+  atualizarLote();
+  $('log').innerHTML = '';
+  log('Tudo limpo.');
+}
+
+(function init() {
+  pingBackend();
+  renderTabela();
+})();
+</script>
+</body>
+</html>
