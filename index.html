@@ -3,423 +3,255 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Baixar XML de NF-e / CT-e pela Chave — Site Local</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<title>Central XML NF-e — Escritório Contábil</title>
 <style>
-  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; }
-  .drop-active { border-color: #0f172a !important; background: #e2e8f0 !important; }
-  .step-num { width: 28px; height: 28px; border-radius: 9999px; background: #0f172a; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
-  #log { max-height: 150px; overflow-y: auto; }
-  input.mono { font-family: ui-monospace, monospace; }
+:root{--azul:#0f2a44;--azul2:#1b3a5c;--dourado:#c9a24b;--dourado2:#b08a35;--fundo:#eef1f5;--card:#fff;--texto:#1e293b;--mut:#64748b;--borda:#dbe2ea;--verde:#15803d;--vermelho:#b91c1c}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--fundo);color:var(--texto);margin:0;display:flex;min-height:100vh}
+aside{width:230px;background:var(--azul);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo{padding:20px 16px;font-size:20px;font-weight:800;border-bottom:1px solid #ffffff22}
+.logo span{color:var(--dourado)}
+.menu{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.menu button{background:none;border:0;color:#cbd5e1;text-align:left;padding:11px 12px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.menu button.ativo,.menu button:hover{background:var(--azul2);color:#fff}
+.menu button.ativo{border-left:4px solid var(--dourado)}
+.sair{color:#fca5a5 !important}
+main{flex:1;padding:20px;max-width:1300px}
+.topbar{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
+.topbar h1{width:100%;margin:0 0 4px;font-size:20px}
+.topbar label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px;min-width:180px;flex:1}
+input,select,textarea{padding:10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:100%;background:#fff;color:var(--texto)}
+button{background:var(--azul);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer;font-size:13px}
+button.dourado{background:var(--dourado);color:#0f2a44}
+button.verde{background:var(--verde)}
+button:disabled{opacity:.5}
+.card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px;margin-bottom:16px}
+.secao{display:none}.secao.ativo{display:block}
+table{width:100%;font-size:12px;border-collapse:collapse}
+th{background:var(--azul);color:#fff;padding:9px 8px;text-align:left;position:sticky;top:0;font-size:11px;text-transform:uppercase}
+td{padding:8px;border-bottom:1px solid var(--borda)}
+tr:hover td{background:#f6f9fc}
+.mono{font-family:ui-monospace,monospace}
+.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.tag.ok{background:#dcfce7;color:var(--verde)}
+.tag.warn{background:#fef3c7;color:#92400e}
+.tag.err{background:#fee2e2;color:var(--vermelho)}
+.tag.info{background:#e0e7ff;color:#3730a3}
+#log{font-size:12px;color:var(--mut);max-height:150px;overflow:auto;margin-top:8px}
+.barra-sel{background:var(--card);border:1px solid var(--dourado);border-radius:12px;padding:12px 16px;display:none;justify-content:space-between;align-items:center;position:sticky;bottom:12px;margin-bottom:16px;font-weight:700}
+.barra-sel.visivel{display:flex}
+.btn-xml{background:var(--verde);color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;text-decoration:none;font-weight:700;white-space:nowrap}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filtros input,.filtros select{width:auto;flex:1;min-width:150px}
+.cliente-linha{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--borda);border-radius:8px;padding:8px;margin-top:8px;font-size:13px}
 </style>
 </head>
-<body class="text-slate-800 pb-12">
-
-<!-- Aviso quando aberto no GitHub Pages (demonstracao, sem backend).
-     O site roda SOMENTE local via iniciar_xml.bat + backend.py. -->
-<div id="avisoGithub" class="hidden max-w-6xl mx-auto px-4 sm:px-8 mt-4">
-  <div class="bg-red-50 border-l-4 border-red-600 p-4 rounded-r-2xl text-sm text-red-950">
-    <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>RODA SOMENTE LOCAL — esta página no GitHub é só demonstração.</p>
-    <p class="mt-1">Para usar de verdade, no Windows: baixe o repositório, instale <strong>Python 3.12+ + Google Chrome</strong> e dê <strong>duplo-clique em <code class="bg-red-100 px-1 rounded">iniciar_xml.bat</code></strong> (abre <code>http://127.0.0.1:8002/</code>). O BUSCAR / lote / download só funcionam com o backend local ligado. Regras completas no README do repositório.</p>
-  </div>
+<body>
+<aside>
+<div class="logo">Central <span>DFe</span></div>
+<nav class="menu">
+<button class="ativo" onclick="tela('inicio',this)">Início</button>
+<button onclick="tela('empresas',this)">Empresas</button>
+<button onclick="tela('baixar',this)">Baixar SEFAZ</button>
+<button onclick="tela('importar',this)">Importar XMLs</button>
+<button onclick="tela('planilha',this)">Importar planilha</button>
+</nav>
+</aside>
+<main>
+<div class="topbar">
+<h1 id="tituloTotal">Documentos (0)</h1>
+<label>Empresa ativa<select id="cliAtivo"></select></label>
+<label>Senha do PFX (sessão, nunca salva)<input id="senhaSessao" type="password" autocomplete="off"></label>
+<label>Situação<select id="fSit"><option value="">Todas as situações</option><option value="autorizada">Autorizada</option><option value="sem protocolo">Sem protocolo</option><option value="ignorado">Ignorado</option></select></label>
+<label>Buscar pela chave<input id="fChave" class="mono" placeholder="trecho da chave"></label>
 </div>
 
-<!-- Aviso quando aberto por duplo-clique direto no arquivo (file://).
-     Navegador nao permite HTML executar .bat, entao orienta a usar o launcher. -->
-<div id="avisoArquivo" class="hidden max-w-6xl mx-auto px-4 sm:px-8 mt-4">
-  <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-2xl text-sm text-amber-950">
-    <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Você abriu o arquivo direto (sem backend).</p>
-    <p class="mt-1">O navegador bloqueia que um <code>.html</code> execute o <code>.bat</code>, então faça assim:</p>
-    <ol class="list-decimal ml-5 mt-1 space-y-1">
-      <li>Feche esta aba e dê <strong>duplo-clique</strong> em <code class="bg-amber-100 px-1 rounded">Abrir Site Local</code> (atalho) ou em <code class="bg-amber-100 px-1 rounded">iniciar_xml.bat</code> — ele <strong>liga o backend e abre o navegador padrão</strong> sozinho.</li>
-      <li>Se o backend já estiver ligado, <a href="http://127.0.0.1:8002/" class="font-bold underline">clique aqui para abrir o site local</a>.</li>
-    </ol>
-    <p id="aguardoBackend" class="mt-2 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>Aguardando o backend iniciar… se você já rodou o .bat, aguarde aqui que esta aba vai sozinha para o site.</p>
-  </div>
+<div id="t-inicio" class="card secao ativo">
+<h2>Início</h2>
+<div id="resumo" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+<p style="color:var(--mut);font-size:13px">Selecione a empresa no topo e use o menu. A tabela de documentos fica em Baixar SEFAZ e Importar XMLs.</p>
 </div>
-<script>
-(function () {
-  try {
-    if (location.hostname.indexOf('github.io') !== -1) {
-      document.getElementById('avisoGithub').classList.remove('hidden');
-    }
-    if (location.protocol === 'file:') {
-      document.getElementById('avisoArquivo').classList.remove('hidden');
-      // Se o usuario rodou o .bat depois, esta aba migra sozinha p/ o site local.
-      var tent = 0, el = document.getElementById('aguardoBackend');
-      var timer = setInterval(function () {
-        tent++;
-        if (tent > 90) {
-          clearInterval(timer);
-          if (el) el.innerHTML = 'Backend não respondeu após 3 min. Verifique a janela preta do iniciar_xml.bat (ela mostra onde travou).';
-          return;
-        }
-        fetch('http://127.0.0.1:8002/api/status', { mode: 'no-cors', cache: 'no-store' })
-          .then(function () { clearInterval(timer); location.replace('http://127.0.0.1:8002/'); })
-          .catch(function () {});
-      }, 2000);
-    }
-  } catch (e) {}
-})();
-</script>
 
-<header class="bg-[#0f172a] text-white py-8 px-4 sm:px-8 shadow">
-  <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-3 md:items-center">
-    <div class="flex items-center gap-3">
-      <i class="fa-solid fa-file-code text-3xl"></i>
-      <div>
-        <h1 class="text-xl sm:text-2xl font-extrabold">Baixar XML de NF-e / CT-e pela Chave</h1>
-        <p class="text-sm text-slate-400">Site <strong>100% local</strong> — automatiza o meudanfe.com.br: Buscar → Cloudflare → Baixar XML → Nova Consulta</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2 text-xs">
-      <span class="px-2 py-1 rounded-lg bg-emerald-700 text-white font-bold"><i class="fa-solid fa-house-laptop mr-1"></i>LOCAL</span>
-      <span id="backendStatus" class="px-2 py-1 rounded-full bg-slate-700 text-slate-200">verificando…</span>
-    </div>
-  </div>
-</header>
+<div id="t-empresas" class="card secao">
+<h2>Empresas</h2>
+<input id="cNome" placeholder="Nome (ex.: HLMO)">
+<input id="cCnpj" class="mono" placeholder="CNPJ (14 dígitos)" style="margin-top:8px">
+<input id="cUf" class="mono" value="23" maxlength="2" style="margin-top:8px">
+<button class="dourado" onclick="criarCliente()" style="margin-top:8px">Cadastrar empresa</button>
+<div id="listaCli"></div>
+<div style="margin-top:12px"><label>Enviar .pfx da empresa ativa <input id="pfxUp" type="file" accept=".pfx,.p12"></label>
+<button onclick="enviarPfx()" style="margin-top:8px">Enviar PFX</button></div>
+</div>
 
-<main class="max-w-6xl mx-auto px-4 sm:px-8 mt-6 space-y-6">
+<div id="t-baixar" class="card secao">
+<h2>Consultar pela chave</h2>
+<input id="chave" class="mono" maxlength="60" placeholder="Chave de Acesso (44 dígitos)">
+<div id="fb" style="font-size:12px;margin-top:4px;color:var(--mut)">0 / 44 dígitos</div><br>
+<button id="btnBuscar" class="dourado" onclick="buscarUma()">Consultar e baixar XML</button>
+<h3>Lote de chaves</h3>
+<textarea id="lote" rows="4" class="mono" placeholder="Cole chaves, uma por linha"></textarea><br><br>
+<button id="btnLote" onclick="baixarLote()">Baixar lote</button>
+</div>
 
-  <!-- Passo a passo (igual aos prints) -->
-  <div class="bg-white rounded-2xl border border-slate-200 p-5 text-sm">
-    <h2 class="font-bold mb-3"><i class="fa-solid fa-list-ol mr-1"></i>Passo-a-passo (igual ao manual no MeuDanfe)</h2>
-    <div class="grid md:grid-cols-5 gap-3 text-xs text-slate-600">
-      <div class="border rounded-xl p-3"><span class="step-num">1</span><p class="mt-2"><strong>Acessar</strong> <code>https://meudanfe.com.br</code> e colar a <strong>chave de 44 dígitos</strong> no campo <em>Buscar NFe e Gerar DANFE</em>.</p></div>
-      <div class="border rounded-xl p-3"><span class="step-num">2</span><p class="mt-2">Clicar em <strong class="text-white bg-green-600 px-2 py-0.5 rounded">BUSCAR</strong>. O robô faz isso sozinho.</p></div>
-      <div class="border rounded-xl p-3"><span class="step-num">3</span><p class="mt-2">Aguardar o <strong>“Verificando… Cloudflare”</strong>. Na 1ª vez marque <strong>Sou humano</strong> no Chrome que o robô abrir.</p></div>
-      <div class="border rounded-xl p-3"><span class="step-num">4</span><p class="mt-2">Clicar em <strong class="text-white bg-red-700 px-2 py-0.5 rounded">Baixar XML</strong>. Libere <strong>pop-ups</strong> no Chrome.</p></div>
-      <div class="border rounded-xl p-3"><span class="step-num">5</span><p class="mt-2">Clicar em <strong class="text-white bg-blue-500 px-2 py-0.5 rounded">NOVA CONSULTA</strong> ou no botão abaixo p/ próxima chave.</p></div>
-    </div>
-    <div class="mt-3 bg-emerald-50 border-l-4 border-emerald-600 p-3 rounded-r-xl text-xs text-emerald-950">
-      <strong>Site local:</strong> abra sempre pelo <code class="bg-emerald-100 px-1 rounded">iniciar_xml.bat</code>
-      (<code>http://127.0.0.1:8002/</code>). Não feche a janela preta enquanto usar.
-      Na 1ª vez, marque <strong>“Sou humano”</strong> no Chrome que o robô abrir e <strong>libere pop-ups</strong>.
-    </div>
-  </div>
+<div id="t-importar" class="card secao">
+<h2>Importar XMLs</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<label>Arquivos .xml <input id="xmlFiles" type="file" accept=".xml" multiple></label>
+<label>Pasta inteira <input id="xmlDir" type="file" webkitdirectory></label>
+<label>Arquivo .zip <input id="xmlZip" type="file" accept=".zip"></label>
+</div>
+<button class="dourado" onclick="enviarDocs()" style="margin-top:8px">Enviar documentos</button>
+<button onclick="baixarPacote()">Exportar tudo (.zip)</button>
+</div>
 
-  <!-- Busca única -->
-  <div class="bg-white rounded-2xl border border-slate-200 p-5">
-    <h2 class="font-bold mb-1 text-lg">Buscar NFe e Gerar DANFE</h2>
-    <p class="text-sm text-slate-500 mb-3">Informe abaixo a chave de acesso da NF-e ou CT-e para Baixar o XML:</p>
-    <div class="flex flex-col sm:flex-row gap-2">
-      <input id="chaveInput" maxlength="60" placeholder="Chave de Acesso (44 dígitos)"
-        class="mono flex-1 border border-slate-300 rounded-lg px-4 py-3 text-sm tracking-wide">
-      <button onclick="buscarUma()" id="btnBuscar"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg text-sm whitespace-nowrap">
-        <i class="fa-solid fa-file-search mr-1"></i>BUSCAR
-      </button>
-    </div>
-    <div id="chaveFeedback" class="text-xs mt-2 text-slate-500">0 / 44 dígitos</div>
-  </div>
+<div id="t-planilha" class="card secao">
+<h2>Importar planilha (.xlsx / .csv / .txt)</h2>
+<input id="planFile" type="file" accept=".xlsx,.xlsm,.csv,.txt">
+<button class="dourado" onclick="importarPlanilha()" style="margin-top:8px">Extrair chaves</button>
+<div id="planRes" style="font-size:13px;margin-top:8px"></div>
+<button id="btnPlanLote" onclick="baixarLotePlanilha()" disabled style="margin-top:8px">Baixar lote da planilha</button>
+</div>
 
-  <!-- Lote -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="bg-white rounded-2xl border border-slate-200 p-5">
-      <h2 class="font-bold mb-3"><i class="fa-solid fa-file-csv mr-1"></i>Lote: arquivo CSV / TXT</h2>
-      <div id="dropzone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:border-slate-900 transition">
-        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400"></i>
-        <p class="text-sm mt-2">Arraste <strong>.csv ou .txt</strong> aqui ou <span class="font-bold underline">clique p/ selecionar</span></p>
-        <p class="text-xs text-slate-400 mt-1">O site localiza as chaves de 44 dígitos sozinho</p>
-        <input id="fileInput" type="file" accept=".csv,.txt,.CSV,.TXT" multiple class="hidden">
-      </div>
-      <div id="fileInfo" class="text-xs text-slate-500 mt-2"></div>
-    </div>
-    <div class="bg-white rounded-2xl border border-slate-200 p-5">
-      <h2 class="font-bold mb-3"><i class="fa-solid fa-paste mr-1"></i>Lote: colar chaves</h2>
-      <textarea id="pasteArea" rows="5" placeholder="Cole as chaves (uma por linha, ou separadas por ; , espaço)"
-        class="w-full text-xs mono border border-slate-300 rounded-xl p-3"></textarea>
-      <div class="flex gap-2 mt-2">
-        <button onclick="carregarTexto()" class="bg-slate-200 hover:bg-slate-300 text-xs font-bold px-4 py-2 rounded-lg">Carregar texto</button>
-        <button onclick="baixarLote()" id="btnLote" class="bg-[#0f172a] hover:bg-[#1e293b] text-white text-xs font-bold px-4 py-2 rounded-lg" disabled>
-          <i class="fa-solid fa-download mr-1"></i>Baixar lote (<span id="countLote">0</span>)
-        </button>
-      </div>
-      <div id="proximoPasso" class="hidden mt-3 bg-emerald-50 border-l-4 border-emerald-600 p-3 rounded-r-xl text-xs text-emerald-950"></div>
-    </div>
-  </div>
+<div class="card secao ativo" id="blocoTabela">
+<h2>Documentos da empresa ativa</h2>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th><input type="checkbox" id="chkTodos" onclick="alternarTodos(this)"></th><th>Ações</th><th>Status</th><th>Situação</th><th>Emissão</th><th>Número</th><th>Chave</th><th>Valor</th><th>CNPJ/CPF</th><th>Nome</th></tr></thead>
+<tbody id="tbDocs"><tr><td colspan="10">Nada ainda.</td></tr></tbody>
+</table>
+</div>
+</div>
 
-  <!-- Progresso + ações -->
-  <div class="bg-white rounded-2xl border border-slate-200 p-5">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <h2 class="font-bold"><i class="fa-solid fa-list-check mr-1"></i>Downloads: <span id="countOk">0</span> XML(s)</h2>
-      <div class="flex gap-2 flex-wrap">
-        <button onclick="baixarZip()" id="btnZip" class="bg-white border border-slate-300 hover:bg-slate-50 text-xs font-bold px-4 py-2 rounded-lg" disabled>
-          <i class="fa-solid fa-file-zipper mr-1"></i>Baixar tudo (.zip)
-        </button>
-        <button onclick="novaConsulta()" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">
-          <i class="fa-solid fa-arrow-left mr-1"></i>NOVA CONSULTA
-        </button>
-        <button onclick="limparTudo()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-4 py-2 rounded-lg">
-          <i class="fa-solid fa-trash mr-1"></i>Limpar
-        </button>
-      </div>
-    </div>
-    <div class="mt-3">
-      <div class="flex justify-between text-xs text-slate-500 mb-1"><span id="progressLabel">Aguardando…</span><span id="progressPct"></span></div>
-      <div class="h-2 bg-slate-200 rounded-full overflow-hidden"><div id="progressBar" class="h-2 bg-green-600 rounded-full transition-all" style="width:0%"></div></div>
-    </div>
-    <div id="log" class="mt-2 text-xs text-slate-500"></div>
-  </div>
+<div class="barra-sel" id="barraSel">
+<span id="txtSel">0 selecionados</span>
+<button class="verde" onclick="baixarSelecionados()">Baixar XMLs</button>
+</div>
 
-  <!-- Resultado -->
-  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-    <div class="p-4 bg-slate-50 border-b"><h2 class="font-bold"><i class="fa-solid fa-table mr-1"></i>Resultado</h2></div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-xs text-left">
-        <thead class="bg-slate-900 text-white uppercase text-[11px]">
-          <tr><th class="px-3 py-2">Chave de acesso</th><th class="px-3 py-2 text-center">Modelo</th><th class="px-3 py-2">Status</th><th class="px-3 py-2 text-right">XML</th></tr>
-        </thead>
-        <tbody id="tbody" class="divide-y divide-slate-200"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <footer class="text-center text-xs text-slate-400">Site 100% local · Fonte dos XMLs: meudanfe.com.br · Confira XMLs críticos no portal oficial.</footer>
+<div class="card"><h2>Resultado / log</h2>
+<table><thead><tr><th>Chave</th><th>Status</th></tr></thead><tbody id="tb"><tr><td colspan="2">Nada ainda.</td></tr></tbody></table>
+<div id="log"></div></div>
 </main>
-
 <script>
-// SITE LOCAL: frontend e API na mesma origem -> sem URL de backend, sem CORS, sem modo Online.
-const $ = id => document.getElementById(id);
-const soDigitos = s => (s || '').replace(/\D/g, '');
-let RESULTADOS = [];
-
-function dvOk(chave) {
-  if (!/^\d{44}$/.test(chave)) return false;
-  const corpo = chave.slice(0, 43); let soma = 0, peso = 2;
-  for (let i = corpo.length - 1; i >= 0; i--) { soma += (+corpo[i]) * peso; peso = peso < 9 ? peso + 1 : 2; }
-  const resto = soma % 11, calc = (resto === 0 || resto === 1) ? 0 : 11 - resto;
-  return calc === (+chave[43]);
+const $=id=>document.getElementById(id);
+const soD=s=>(s||'').replace(/\D/g,'');
+let CHAVES_PLANILHA=[], DOCS=[], SEL=new Set();
+function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+m;$('log').prepend(d)}
+function tela(nome,btn){document.querySelectorAll('main .secao').forEach(s=>{if(s.id!=='blocoTabela')s.classList.remove('ativo')});document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('ativo'));$('t-'+nome).classList.add('ativo');btn.classList.add('ativo');if(nome==='inicio')resumo()}
+function cliAtivo(){return $('cliAtivo').value}
+function senhaS(){return $('senhaSessao').value}
+async function recarregarClientes(){
+  const r=await fetch('/api/clientes');const lst=await r.json();
+  $('cliAtivo').innerHTML=lst.map(c=>`<option value="${c.id}">${c.nome} — ${c.cnpj}</option>`).join('')||'<option value="">(cadastre uma empresa)</option>';
+  $('listaCli').innerHTML=lst.map(c=>`<div class="cliente-linha"><span><b>${c.nome}</b> · ${c.cnpj} · UF ${c.uf}</span><button onclick="excluirCliente('${c.id}')">Excluir</button></div>`).join('');
+  carregarDocs();
 }
-function validaChave(c) {
-  if (!/^\d{44}$/.test(c)) return 'chave deve ter 44 dígitos';
-  if (!['55','57'].includes(c.slice(20,22))) return 'modelo inválido (posições 21-22 devem ser 55 NF-e ou 57 CT-e)';
-  if (!dvOk(c)) return 'DV inválido — confira a digitação';
-  return null;
+async function resumo(){
+  if(!cliAtivo()){$('resumo').innerHTML='<p>Sem empresa.</p>';return}
+  const r=await fetch('/api/docs/'+cliAtivo());const lst=await r.json();
+  const aut=lst.filter(d=>d.status==='autorizada').length;
+  const tot=lst.reduce((s,d)=>s+parseFloat(String(d.vnf||'').replace(',','.')||0),0);
+  $('resumo').innerHTML=`<div class="card"><b>${lst.length}</b> documentos</div><div class="card"><b>${aut}</b> autorizadas</div><div class="card"><b>R$ ${tot.toFixed(2)}</b> total</div>`;
+  $('tituloTotal').textContent=`Documentos (${lst.length})`;
 }
-
-function log(msg) {
-  const d = document.createElement('div');
-  d.textContent = new Date().toLocaleTimeString('pt-BR') + ' — ' + msg;
-  $('log').prepend(d);
+async function criarCliente(){
+  const r=await fetch('/api/clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:$('cNome').value,cnpj:soD($('cCnpj').value),uf:soD($('cUf').value)||'23'})});
+  const j=await r.json();if(!r.ok){alert(j.erro||'Erro');return}
+  $('cNome').value='';$('cCnpj').value='';recarregarClientes();log('Empresa '+j.nome+' cadastrada.');
 }
-async function pingBackend() {
-  try {
-    const r = await fetch('/api/status');
-    if (r.ok) {
-      $('backendStatus').textContent = 'local online';
-      $('backendStatus').className = 'px-2 py-1 rounded-full bg-emerald-600 text-white';
-      return true;
-    }
-  } catch (e) {}
-  $('backendStatus').textContent = 'offline — rode o iniciar_xml.bat';
-  $('backendStatus').className = 'px-2 py-1 rounded-full bg-rose-600 text-white';
-  return false;
+async function excluirCliente(id){if(!confirm('Excluir empresa e seus XMLs?'))return;await fetch('/api/clientes/'+id,{method:'DELETE'});recarregarClientes()}
+async function enviarPfx(){
+  if(!cliAtivo()){alert('Selecione a empresa');return}
+  if(!$('pfxUp').files[0]){alert('Selecione o .pfx');return}
+  const fd=new FormData();fd.append('pfx',$('pfxUp').files[0]);
+  const r=await fetch('/api/clientes/'+cliAtivo()+'/pfx',{method:'POST',body:fd});
+  const j=await r.json();alert(j.ok?'PFX salvo.':('Erro: '+(j.erro||r.status)));
 }
-
-// ---------- entrada ----------
-$('chaveInput').addEventListener('input', () => {
-  const c = soDigitos($('chaveInput').value);
-  $('chaveFeedback').textContent = `${c.length} / 44 dígitos` + (c.length === 44 ? (validaChave(c) ? ' — ⚠️ ' + validaChave(c) : ' — ✓ válida') : '');
-});
-$('chaveInput').addEventListener('keydown', e => { if (e.key === 'Enter') buscarUma(); });
-
-const dz = $('dropzone'), fi = $('fileInput');
-dz.onclick = () => fi.click();
-['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drop-active'); }));
-['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drop-active'); }));
-dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) lerArquivos(e.dataTransfer.files); });
-fi.addEventListener('change', () => { if (fi.files.length) { lerArquivos(fi.files); fi.value = ''; } });
-
-function extrairChaves(texto) { return [...new Set(String(texto || '').match(/\d{44}/g) || [])]; }
-function lerArquivos(files) {
-  const lista = [...files].filter(f => /\.(csv|txt)$/i.test(f.name) || !f.name.includes('.'));
-  if (!lista.length) { alert('Selecione .csv ou .txt'); return; }
-  let pend = lista.length;
-  lista.forEach(file => {
-    const rd = new FileReader();
-    rd.onload = () => {
-      const novas = extrairChaves(String(rd.result || ''));
-      const atual = $('pasteArea').value.trim();
-      $('pasteArea').value = (atual ? atual + '\n' : '') + novas.join('\n');
-      $('fileInfo').textContent = `${lista.length} arquivo(s): +${novas.length} chave(s) de ${file.name}`;
-      log(`${file.name}: ${novas.length} chave(s) encontradas.`);
-      if (--pend === 0) { atualizarLote(); orientarProximoPasso('arquivo'); }
-    };
-    rd.readAsText(file, 'UTF-8');
-  });
+function dvOk(c){if(!/^\d{44}$/.test(c))return false;let s=0,p=2;for(let i=42;i>=0;i--){s+=(+c[i])*p;p=p<9?p+1:2}const r=s%11,calc=(r===0||r===1)?0:11-r;return calc===+c[43]}
+function valida(c){if(!/^\d{44}$/.test(c))return '44 dígitos';if(c.slice(20,22)!=='55')return 'modelo 55';if(!dvOk(c))return 'DV inválido';return null}
+$('chave').addEventListener('input',()=>{const c=soD($('chave').value);$('fb').textContent=c.length+' / 44 dígitos'+(c.length===44?(valida(c)?' — '+valida(c):' — válida, UF emitente '+c.slice(0,2)):'')});
+$('fChave').addEventListener('input',carregarDocs);$('fSit').addEventListener('change',carregarDocs);
+let RES=[];
+function render(){const tb=$('tb');tb.innerHTML=RES.length?'':'<tr><td colspan="2">Nada ainda.</td></tr>';for(const r of RES){const tr=document.createElement('tr');tr.innerHTML=`<td class="mono">${r.chave}</td><td>${r.ok?'<span class="tag ok">XML baixado</span>':'<span class="tag err">'+(r.erro||'erro')+'</span>'}</td>`;tb.appendChild(tr)}}
+async function buscarUma(){
+  const c=soD($('chave').value);const e=valida(c);if(e){alert(e);return}
+  if(!cliAtivo()){alert('Selecione a empresa');return}
+  if(!senhaS()){alert('Digite a senha do PFX');return}
+  $('btnBuscar').disabled=true;log('Consultando '+c+'...');
+  const fd=new FormData();fd.append('cliente_id',cliAtivo());fd.append('chave',c);fd.append('senha',senhaS());fd.append('ambiente','prod');
+  try{const r=await fetch('/api/sefaz/xml',{method:'POST',body:fd});
+    if(!r.ok){const j=await r.json().catch(()=>({erro:'HTTP '+r.status}));throw new Error(j.erro||('HTTP '+r.status))}
+    const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`nfe_${c}.xml`;a.click();
+    RES.unshift({chave:c,ok:true});log('OK '+c);carregarDocs();
+  }catch(err){RES.unshift({chave:c,ok:false,erro:String(err.message||err).slice(0,200)});log('ERRO: '+err.message);alert(err.message)}
+  finally{$('btnBuscar').disabled=false;render()}
 }
-function carregarTexto() {
-  atualizarLote();
-  log('Texto carregado: ' + extrairChaves($('pasteArea').value).length + ' chave(s).');
-  orientarProximoPasso('colado');
+async function baixarLista(chaves){
+  if(!cliAtivo()){alert('Selecione a empresa');return}
+  if(!senhaS()){alert('Digite a senha do PFX');return}
+  log('Lote: '+chaves.length+' chave(s)...');
+  const r=await fetch('/api/sefaz/lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente_id:cliAtivo(),chaves,senha:senhaS(),ambiente:'prod'})});
+  const j=await r.json();(j.resultados||[]).forEach(x=>RES.unshift(x));render();
+  log(`Lote: ${j.ok}/${j.total} OK.`);carregarDocs();
 }
-function orientarProximoPasso(origem) {
-  const n = extrairChaves($('pasteArea').value).length;
-  const box = $('proximoPasso');
-  if (!n) { box.classList.add('hidden'); return; }
-  box.classList.remove('hidden');
-  box.innerHTML = `<strong>✓ ${n} chave(s) pronta(s).</strong> Próximo passo: clique em <strong>Baixar lote</strong> — o robô busca uma por uma no MeuDanfe e os XMLs são baixados automaticamente (acompanhe o progresso abaixo).`;
-  log(`Próximo passo: clique em Baixar lote (${n} chave(s)).`);
-  box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+function baixarLote(){const chs=[...new Set(($('lote').value.match(/\d{44}/g)||[]))];if(!chs.length){alert('Cole ao menos 1 chave');return}baixarLista(chs)}
+async function importarPlanilha(){
+  if(!$('planFile').files[0]){alert('Selecione a planilha');return}
+  const fd=new FormData();fd.append('arquivo',$('planFile').files[0]);
+  const r=await fetch('/api/planilha/chaves',{method:'POST',body:fd});
+  const j=await r.json();
+  if(!r.ok){alert(j.erro||'Erro');return}
+  CHAVES_PLANILHA=j.validas;
+  $('planRes').innerHTML=`<b>${j.validas.length}</b> chave(s) válida(s)${j.invalidas?` (+${j.invalidas} inválida(s) ignorada(s))`:''}.`;
+  $('btnPlanLote').disabled=false;log('Planilha: '+j.validas.length+' chave(s).');
 }
-function atualizarLote() {
-  const n = extrairChaves($('pasteArea').value).length;
-  $('countLote').textContent = n;
-  $('btnLote').disabled = n === 0;
-  const box = $('proximoPasso');
-  if (box && !box.classList.contains('hidden') && n === 0) box.classList.add('hidden');
+function baixarLotePlanilha(){if(!CHAVES_PLANILHA.length){alert('Importe a planilha primeiro');return}baixarLista(CHAVES_PLANILHA)}
+function tagStatus(s){if(s==='autorizada')return '<span class="tag ok">AUTORIZADO</span>';if(s==='ignorado')return '<span class="tag warn">Ignorado</span>';return '<span class="tag info">'+s+'</span>'}
+async function carregarDocs(){
+  if(!cliAtivo())return;
+  const r=await fetch('/api/docs/'+cliAtivo());DOCS=await r.json();
+  const fC=soD($('fChave').value),fS=$('fSit').value;
+  const lst=DOCS.filter(d=>(!fC||(d.chave||'').includes(fC))&&(!fS||d.status===fS));
+  SEL=new Set([...SEL].filter(c=>lst.some(d=>d.chave===c)));
+  $('tbDocs').innerHTML=lst.length?'':'<tr><td colspan="10">Nada ainda.</td></tr>';
+  for(const d of lst){const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input type="checkbox" ${SEL.has(d.chave)?'checked':''} onchange="sel('${d.chave}',this.checked)"></td><td><a class="btn-xml" href="/api/docs/arquivo/${cliAtivo()}/${d.chave}" download="nfe_${d.chave}.xml">XML</a></td><td>${tagStatus(d.status)}</td><td>${d.status||'—'}</td><td>${d.dhemi?d.dhemi.slice(0,16).replace('T',' '):'—'}</td><td>${d.nnf||'—'}</td><td class="mono">${(d.chave||'').slice(0,18)}…</td><td>${d.vnf||'—'}</td><td class="mono">${d.emit_cnpj||d.dest_cnpj||'—'}</td><td>${d.emit||'—'}</td>`;
+    $('tbDocs').appendChild(tr)}
+  barra();
 }
-
-// ---------- ações ----------
-function upsertResultado(r) {
-  const i = RESULTADOS.findIndex(x => x.chave === r.chave);
-  if (i >= 0) RESULTADOS[i] = r; else RESULTADOS.push(r);
-  renderTabela();
+function sel(chave,on){on?SEL.add(chave):SEL.delete(chave);barra()}
+function alternarTodos(el){document.querySelectorAll('#tbDocs input[type=checkbox]').forEach(c=>{c.checked=el.checked;const ch=c.getAttribute('onchange').match(/'([^']+)'/)[1];el.checked?SEL.add(ch):SEL.delete(ch)});barra()}
+function barra(){
+  const tot=[...SEL].reduce((s,c)=>{const d=DOCS.find(x=>x.chave===c);return s+(parseFloat((d&&d.vnf||'').replace(',','.'))||0)},0);
+  $('barraSel').classList.toggle('visivel',SEL.size>0);
+  $('txtSel').textContent=`${SEL.size} selecionados (R$ ${tot.toFixed(2)})`;
 }
-function renderTabela() {
-  const tb = $('tbody'); tb.innerHTML = '';
-  $('countOk').textContent = RESULTADOS.filter(r => r.ok).length;
-  $('btnZip').disabled = !RESULTADOS.some(r => r.ok);
-  if (!RESULTADOS.length) {
-    tb.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">Nenhum XML baixado ainda. Digite a chave e clique em BUSCAR.</td></tr>';
-    return;
+async function baixarSelecionados(){
+  for(const c of SEL){const a=document.createElement('a');a.href=`/api/docs/arquivo/${cliAtivo()}/${c}`;a.download=`nfe_${c}.xml`;a.click();await new Promise(r=>setTimeout(r,400))}
+}
+async function enviarDocs(){
+  if(!cliAtivo()){alert('Selecione a empresa');return}
+  const fd=new FormData();let n=0;
+  const junta=files=>{for(const f of files){fd.append('xmls',f);n++}};
+  junta($('xmlFiles').files);junta($('xmlDir').files);
+  if($('xmlZip').files[0]){
+    const fz=new FormData();fz.append('cliente_id',cliAtivo());fz.append('pacote',$('xmlZip').files[0]);
+    const rz=await fetch('/api/docs/zip',{method:'POST',body:fz});const jz=await rz.json();
+    log(`Zip: ${jz.ok} XML(s), ${jz.duplicados||0} duplicados.`);
   }
-  for (const r of RESULTADOS) {
-    const modelo = (r.chave || '').slice(20, 22);
-    const modLbl = modelo === '55' ? 'NF-e 55' : modelo === '57' ? 'CT-e 57' : modelo || '—';
-    const status = r.ok
-      ? '<span class="px-2 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800">✓ XML baixado</span>'
-      : `<span class="px-2 py-1 rounded-full font-bold bg-rose-100 text-rose-800" title="${(r.erro || '').replace(/"/g, '')}">✗ ${(r.erro || 'erro').slice(0, 60)}</span>`;
-    const btn = r.ok
-      ? `<a href="/api/nfe/arquivo/${r.chave}" download="nfe_${r.chave}.xml" class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-lg whitespace-nowrap"><i class="fa-solid fa-file-code mr-1"></i>Baixar XML</a>`
-      : '<span class="text-slate-300 text-xs">—</span>';
-    const tr = document.createElement('tr');
-    tr.className = 'hover:bg-slate-50';
-    tr.innerHTML = `<td class="px-3 py-2 mono text-[11px]">${r.chave}</td><td class="px-3 py-2 text-center">${modLbl}</td><td class="px-3 py-2">${status}</td><td class="px-3 py-2 text-right">${btn}</td>`;
-    tb.appendChild(tr);
+  if(n){
+    const r=await fetch('/api/docs/upload?cliente_id='+cliAtivo(),{method:'POST',body:fd});
+    const j=await r.json();log(`Upload: ${j.ok} XML(s), ${j.duplicados||0} duplicados, ${(j.ignorados||[]).length} ignorados.`);
   }
+  if(!n&&!$('xmlZip').files[0]){alert('Selecione arquivos, pasta ou zip');return}
+  carregarDocs();
 }
-function setProgress(pct, label) {
-  $('progressBar').style.width = pct + '%';
-  $('progressPct').textContent = pct + '%';
-  if (label) $('progressLabel').textContent = label;
+async function baixarPacote(){
+  if(!cliAtivo()){alert('Selecione a empresa');return}
+  const r=await fetch('/api/docs/pacote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente_id:cliAtivo()})});
+  if(!r.ok){alert('Nada para zipar');return}
+  const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='xml_docs.zip';a.click();
 }
-
-async function buscarUma() {
-  const c = soDigitos($('chaveInput').value);
-  const err = validaChave(c);
-  if (err) { alert(err); return; }
-  if (!await pingBackend()) { alert('Backend local offline. Rode o iniciar_xml.bat.'); return; }
-  $('btnBuscar').disabled = true;
-  setProgress(10, `Buscando ${c} no MeuDanfe… (aguarde o Cloudflare liberar)`);
-  log(`BUSCAR ${c} …`);
-  try {
-    const r = await fetch(`/api/nfe/xml?chave=${c}&espera=20&timeout_dl=60`);
-    if (!r.ok) {
-      let detalhe = 'HTTP ' + r.status, extra = '';
-      try {
-        const j = await r.clone().json();
-        detalhe = j.erro || detalhe;
-        if (j.tipo) extra += '\nTipo: ' + j.tipo;
-        if (j.dica) extra += '\n' + j.dica;
-      } catch (e) {
-        try { detalhe += ' — ' + (await r.text()).slice(0, 400); } catch (e2) {}
-      }
-      throw new Error(detalhe + extra);
-    }
-    const blob = await r.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `nfe_${c}.xml`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    upsertResultado({ chave: c, ok: true });
-    setProgress(100, `Concluído: XML nfe_${c}.xml baixado.`);
-    log(`OK: nfe_${c}.xml (${blob.size} bytes). Clique em NOVA CONSULTA p/ próxima.`);
-  } catch (e) {
-    const msg = String(e.message || e).slice(0, 800);
-    upsertResultado({ chave: c, ok: false, erro: msg });
-    setProgress(100, 'Falhou — veja o erro na tabela/log.');
-    log('ERRO ' + c + ': ' + msg);
-    alert('Falha ao baixar XML:\n' + msg + '\n\nDiagnóstico: abra http://127.0.0.1:8002/api/diag');
-  } finally {
-    $('btnBuscar').disabled = false;
-  }
-}
-
-async function baixarLote() {
-  const chaves = extrairChaves($('pasteArea').value);
-  if (!chaves.length) { alert('Cole ao menos 1 chave.'); return; }
-  if (!await pingBackend()) { alert('Backend local offline. Rode o iniciar_xml.bat.'); return; }
-  $('btnLote').disabled = true;
-  log(`Lote: ${chaves.length} chave(s)…`);
-  try {
-    setProgress(5, `Baixando lote de ${chaves.length}… (não feche — o robô clica em Nova Consulta a cada chave)`);
-    const r = await fetch('/api/nfe/lote', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chaves, espera_explicita: 20, timeout_download: 60, intervalo: 2, tentativas: 2, headless: false })
-    });
-    const data = await r.json();
-    (data.resultados || []).forEach(upsertResultado);
-    const ok = (data.resultados || []).filter(x => x.ok).length;
-    setProgress(100, `Lote concluído: ${ok}/${chaves.length} XML(s).`);
-    log(`Lote: ${ok} OK, ${chaves.length - ok} falhas. Use "Baixar tudo (.zip)".`);
-    for (const res of (data.resultados || []).filter(x => x.ok)) {
-      const a = document.createElement('a');
-      a.href = `/api/nfe/arquivo/${res.chave}`;
-      a.download = `nfe_${res.chave}.xml`;
-      a.click();
-      await new Promise(rr => setTimeout(rr, 600));
-    }
-  } catch (e) {
-    log('ERRO lote: ' + e);
-    alert('Falha no lote: ' + e);
-  } finally {
-    $('btnLote').disabled = false;
-    atualizarLote();
-  }
-}
-
-async function baixarZip() {
-  const chaves = RESULTADOS.filter(r => r.ok).map(r => r.chave);
-  if (!chaves.length) { alert('Nada p/ zipar.'); return; }
-  log('Gerando .zip com ' + chaves.length + ' XML(s)…');
-  const r = await fetch('/api/nfe/zip', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chaves })
-  });
-  if (!r.ok) { alert('Falha ao gerar ZIP (HTTP ' + r.status + ')'); return; }
-  const blob = await r.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'xml_nfe_lote.zip';
-  a.click();
-  log('ZIP baixado.');
-}
-
-function novaConsulta() {
-  $('chaveInput').value = '';
-  $('chaveFeedback').textContent = '0 / 44 dígitos';
-  setProgress(0, 'Nova consulta — digite a próxima chave.');
-  $('chaveInput').focus();
-  log('Nova consulta pronta.');
-}
-function limparTudo() {
-  RESULTADOS = [];
-  $('pasteArea').value = '';
-  novaConsulta();
-  renderTabela();
-  atualizarLote();
-  $('log').innerHTML = '';
-  log('Tudo limpo.');
-}
-
-(function init() {
-  pingBackend();
-  renderTabela();
-})();
+recarregarClientes();
 </script>
 </body>
 </html>

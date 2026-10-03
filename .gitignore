@@ -1,19 +1,12 @@
-# Perfil do Chrome (muito grande, dados locais)
-chrome-perfil-xml/
-
-# XMLs baixados (dados sensíveis de NF-e + prints de erro)
+certs/
+docs_xml/
+clientes.json
 xml_baixados/
-*.xml
-*.png
-
-# Logs e atalhos locais
-backend.log
-*.lnk
-*.log
-
-# Python
+chrome-perfil-xml/
 __pycache__/
 *.pyc
-*.pyo
-.venv/
-venv/
+*.pfx
+*.xml
+*.png
+*.lnk
+*.log

@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+lxml
+cryptography
+requests
+python-multipart
+openpyxl
