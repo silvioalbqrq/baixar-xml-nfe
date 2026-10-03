@@ -92,6 +92,103 @@ def excluir(cid: str):
 
 
 SOAP_ACTION = "http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe/nfeDistDFeInteresse"
+AN_EVENTO = {
+    "prod": "https://www.nfe.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx",
+    "homolog": "https://hom.nfe.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx",
+}
+EVENTO_ACTION = "http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4/nfeRecepcaoEvento"
+
+
+def _montar_evento_ciencia(cnpj: str, chave: str, tp_amb: int = 1) -> bytes:
+    from datetime import datetime, timezone
+    cnpj_d = so_digitos(cnpj)
+    if len(cnpj_d) != 14:
+        raise ValueError("CNPJ deve ter 14 digitos")
+    err = valida_chave(chave)
+    if err:
+        raise ValueError(err)
+    dh = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    xml = (
+        f'<envEvento versao="1.00" xmlns="http://www.portalfiscal.inf.br/nfe">'
+        f"<idLote>1</idLote><evento versao=\"1.00\">"
+        f"<infEvento Id=\"ID210200{chave}1\">"
+        f"<cOrgao>91</cOrgao><tpAmb>{tp_amb}</tpAmb><CNPJ>{cnpj_d}</CNPJ>"
+        f"<chNFe>{chave}</chNFe><dhEvento>{dh}</dhEvento>"
+        f"<tpEvento>210200</tpEvento><nSeqEvento>1</nSeqEvento><verEvento>1.00</verEvento>"
+        f"<detEvento versao=\"1.00\"><descEvento>Ciencia da Operacao</descEvento></detEvento>"
+        f"</infEvento></evento></envEvento>"
+    )
+    return xml.encode("utf-8")
+
+
+def _assinar_evento(env_xml: bytes, pfx_bytes: bytes, senha: str) -> bytes:
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.serialization import pkcs12
+    from lxml import etree
+    from signxml import XMLSigner
+    priv, cert, _ = pkcs12.load_key_and_certificates(pfx_bytes, (senha or "").encode())
+    key_pem = priv.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption())
+    cert_pem = cert.public_bytes(serialization.Encoding.PEM)
+
+    class _SHA1Signer(XMLSigner):
+        def check_deprecated_methods(self):
+            return None
+
+    signer = _SHA1Signer(signature_algorithm="rsa-sha1", digest_algorithm="sha1",
+                        c14n_algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315")
+    signed = signer.sign(etree.fromstring(env_xml), key=key_pem, cert=cert_pem)
+    return etree.tostring(signed, encoding="utf-8")
+
+
+@app.post("/api/evento/ciencia")
+def evento_ciencia(cliente_id: str = Form(...), chave: str = Form(...),
+                   senha: str = Form(""), ambiente: str = Form("prod")):
+    import os
+    import requests
+    from lxml import etree
+    found, erro = _cliente_ou_erro(cliente_id)
+    if erro:
+        return erro
+    reg, pfx_path = found
+    c = so_digitos(chave)
+    pfx_bytes = pfx_path.read_bytes()
+    try:
+        _validar_pfx(pfx_bytes, senha)
+        dist = _montar_evento_ciencia(reg["cnpj"], c, 1 if ambiente == "prod" else 2)
+        assinado = _assinar_evento(dist, pfx_bytes, senha)
+        env = (_soap_envelope_evento(assinado))
+        url = AN_EVENTO["prod"] if ambiente == "prod" else AN_EVENTO["homolog"]
+        cert_path, key_path = _pfx_para_pem_temp(pfx_bytes, senha)
+        try:
+            r = requests.post(url, data=env, headers={"Content-Type": "text/xml; charset=utf-8",
+                              "SOAPAction": EVENTO_ACTION}, timeout=30, cert=(cert_path, key_path))
+        finally:
+            for p in (cert_path, key_path):
+                try:
+                    os.unlink(p)
+                except Exception:
+                    pass
+        root = etree.fromstring(r.content)
+        ns = {"n": "http://www.portalfiscal.inf.br/nfe"}
+        cstat = (root.find(".//n:cStat", ns).text or "").strip() if root.find(".//n:cStat", ns) is not None else ""
+        xmot = (root.find(".//n:xMotivo", ns).text or "").strip() if root.find(".//n:xMotivo", ns) is not None else ""
+    except ValueError as e:
+        return JSONResponse({"ok": False, "erro": str(e)[:400]}, status_code=400)
+    except Exception as e:
+        return JSONResponse({"ok": False, "erro": f"Falha SEFAZ/rede: {str(e)[:400]}"}, status_code=502)
+    if cstat in ("135", "136"):
+        return {"ok": True, "cstat": cstat, "xmotivo": xmot}
+    return JSONResponse({"ok": False, "erro": f"SEFAZ {cstat}: {xmot}"[:400]}, status_code=502)
+
+
+def _soap_envelope_evento(assinado: bytes) -> bytes:
+    return (
+        b'<?xml version="1.0" encoding="utf-8"?>'
+        b'<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'
+        b"<soap:Body><nfeRecepcaoEvento xmlns=\"http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4\">"
+        b"<nfeDadosMsg>" + assinado + b"</nfeDadosMsg>"
+        b"</nfeRecepcaoEvento></soap:Body></soap:Envelope>"
+    )
 
 
 def _soap_envelope(dist_xml: bytes) -> bytes:
@@ -203,7 +300,14 @@ def _consultar(chave: str, cnpj: str, ambiente: str, pfx_bytes: bytes, senha: st
     return cstat, xmot, docs
 
 
+def _cid_ok(cid: str) -> bool:
+    import re as _re
+    return bool(_re.fullmatch(r"[0-9a-f]{8}", cid or ""))
+
+
 def _cliente_existe(cid: str):
+    if not _cid_ok(cid):
+        return None, JSONResponse({"ok": False, "erro": "Cliente inválido"}, status_code=400)
     reg = next((c for c in _load() if c["id"] == cid), None)
     if not reg:
         return None, JSONResponse({"ok": False, "erro": "Cliente não encontrado"}, status_code=404)
@@ -281,6 +385,9 @@ def sefaz_xml(cliente_id: str = Form(...), chave: str = Form(...),
 @app.post("/api/sefaz/lote")
 def sefaz_lote(payload: dict):
     import time as _time
+    chaves = payload.get("chaves", [])
+    if len(chaves) > 50:
+        return JSONResponse({"ok": False, "erro": "Lote limitado a 50 chaves por vez"}, status_code=400)
     found, erro = _cliente_ou_erro(payload.get("cliente_id", ""))
     if erro:
         return erro
@@ -288,7 +395,6 @@ def sefaz_lote(payload: dict):
     pfx_bytes = pfx_path.read_bytes()
     senha = payload.get("senha", "")
     ambiente = payload.get("ambiente", "prod")
-    chaves = payload.get("chaves", [])
     vistos, fila = set(), []
     for bruta in chaves:
         c = so_digitos(bruta)
@@ -543,3 +649,81 @@ def docs_pacote(payload: dict):
     buf.seek(0)
     return StreamingResponse(buf, media_type="application/zip",
                              headers={"Content-Disposition": "attachment; filename=xml_docs.zip"})
+
+
+def _parse_itens(data: bytes):
+    from lxml import etree
+    ns = {"n": "http://www.portalfiscal.inf.br/nfe"}
+    try:
+        root = etree.fromstring(data)
+    except Exception:
+        return []
+    itens = []
+    for det in root.findall(".//n:det", ns):
+        def txt(p):
+            el = det.find(p, ns)
+            return (el.text or "").strip() if el is not None else ""
+        itens.append({"n": det.get("nItem", ""), "xprod": txt("./n:prod/n:xProd"),
+                      "ncm": txt("./n:prod/n:NCM"), "cfop": txt("./n:prod/n:CFOP"),
+                      "qcom": txt("./n:prod/n:qCom"), "vun": txt("./n:prod/n:vUnCom"),
+                      "vprod": txt("./n:prod/n:vProd")})
+    return itens
+
+
+@app.get("/api/danfe/{cid}/{chave}", include_in_schema=False)
+def danfe(cid: str, chave: str):
+    from fastapi.responses import HTMLResponse
+    import html as _html
+    reg, erro = _cliente_existe(cid)
+    if erro:
+        return erro
+    f = DOCS_DIR / reg["id"] / f"nfe_{so_digitos(chave)}.xml"
+    if not f.exists():
+        return JSONResponse({"ok": False, "erro": "XML não encontrado"}, status_code=404)
+    data = f.read_bytes()
+    info = _parse_nfe(data) or {}
+    itens = _parse_itens(data)
+    e = lambda v: _html.escape(v or "")
+    linhas = "".join(f"<tr><td>{e(i['n'])}</td><td>{e(i['xprod'])}</td><td>{e(i['ncm'])}</td>"
+                     f"<td>{e(i['cfop'])}</td><td>{e(i['qcom'])}</td><td>{e(i['vun'])}</td><td>{e(i['vprod'])}</td></tr>" for i in itens)
+    return HTMLResponse(f"""<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>DANFE {e(info.get('chave'))}</title>
+<style>body{{font-family:Arial;font-size:12px;max-width:800px;margin:auto}}table{{width:100%;border-collapse:collapse}}td,th{{border:1px solid #000;padding:4px}}@media print{{button{{display:none}}}}</style>
+</head><body><button onclick="window.print()">Imprimir / salvar PDF</button>
+<h2>DANFE — Documento Auxiliar (sem valor fiscal)</h2>
+<p><b>Chave:</b> {e(info.get('chave'))}</p>
+<p><b>Emitente:</b> {e(info.get('emit'))} — {e(info.get('emit_cnpj'))}</p>
+<p><b>Destinatário:</b> {e(info.get('dest'))} — {e(info.get('dest_cnpj'))}</p>
+<table><tr><th>#</th><th>Produto</th><th>NCM</th><th>CFOP</th><th>Qtd</th><th>V.Unit</th><th>V.Total</th></tr>{linhas}</table>
+<p><b>Valor total da nota: R$ {e(info.get('vnf'))}</b> — Emissão {e(info.get('dhemi'))} — Status {e(info.get('status'))}</p>
+</body></html>""")
+
+
+@app.post("/api/docs/excel")
+def docs_excel(payload: dict):
+    import io as _io
+    reg, erro = _cliente_existe(payload.get("cliente_id", ""))
+    if erro:
+        return erro
+    import openpyxl as _oxl
+    wb = _oxl.Workbook()
+    ws = wb.active
+    ws.title = "Documentos"
+    ws.append(["Chave", "Emitente", "Emit CNPJ", "Destinatario", "Valor", "Emissao", "Numero", "Status"])
+    pasta = DOCS_DIR / reg["id"]
+    if pasta.exists():
+        for f in sorted(pasta.glob("nfe_*.xml")):
+            try:
+                info = _parse_nfe(f.read_bytes())
+                if info:
+                    ws.append([info.get("chave"), info.get("emit"), info.get("emit_cnpj"),
+                               info.get("dest"), info.get("vnf"), info.get("dhemi"),
+                               info.get("nnf"), info.get("status")])
+            except Exception:
+                continue
+    buf = _io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(buf, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                             headers={"Content-Disposition": "attachment; filename=documentos.xlsx"})

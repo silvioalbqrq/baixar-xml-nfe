@@ -58,6 +58,7 @@ tr:hover td{background:#f6f9fc}
 </nav>
 </aside>
 <main>
+<div id="vitrine" style="display:none;background:#fef3c7;border-left:4px solid var(--dourado);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px"><b>Modo demonstração</b> — sem backend local. Para usar de verdade, baixe o projeto e rode o <span class="mono">iniciar_central.bat</span> (<span class="mono">http://127.0.0.1:8004/</span>).</div>
 <div class="topbar">
 <h1 id="tituloTotal">Documentos (0)</h1>
 <label>Empresa ativa<select id="cliAtivo"></select></label>
@@ -102,6 +103,7 @@ tr:hover td{background:#f6f9fc}
 </div>
 <button class="dourado" onclick="enviarDocs()" style="margin-top:8px">Enviar documentos</button>
 <button onclick="baixarPacote()">Exportar tudo (.zip)</button>
+<button onclick="baixarExcel()">Exportar Excel</button>
 </div>
 
 <div id="t-planilha" class="card secao">
@@ -117,7 +119,7 @@ tr:hover td{background:#f6f9fc}
 <div style="overflow-x:auto">
 <table>
 <thead><tr><th><input type="checkbox" id="chkTodos" onclick="alternarTodos(this)"></th><th>Ações</th><th>Status</th><th>Situação</th><th>Emissão</th><th>Número</th><th>Chave</th><th>Valor</th><th>CNPJ/CPF</th><th>Nome</th></tr></thead>
-<tbody id="tbDocs"><tr><td colspan="10">Nada ainda.</td></tr></tbody>
+<tbody id="tbDocs"><tr><td colspan="11">Nada ainda.</td></tr></tbody>
 </table>
 </div>
 </div>
@@ -134,17 +136,27 @@ tr:hover td{background:#f6f9fc}
 <script>
 const $=id=>document.getElementById(id);
 const soD=s=>(s||'').replace(/\D/g,'');
+const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let CHAVES_PLANILHA=[], DOCS=[], SEL=new Set();
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+m;$('log').prepend(d)}
 function tela(nome,btn){document.querySelectorAll('main .secao').forEach(s=>{if(s.id!=='blocoTabela')s.classList.remove('ativo')});document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('ativo'));$('t-'+nome).classList.add('ativo');btn.classList.add('ativo');if(nome==='inicio')resumo()}
 function cliAtivo(){return $('cliAtivo').value}
 function senhaS(){return $('senhaSessao').value}
 async function recarregarClientes(){
-  const r=await fetch('/api/clientes');const lst=await r.json();
-  $('cliAtivo').innerHTML=lst.map(c=>`<option value="${c.id}">${c.nome} — ${c.cnpj}</option>`).join('')||'<option value="">(cadastre uma empresa)</option>';
-  $('listaCli').innerHTML=lst.map(c=>`<div class="cliente-linha"><span><b>${c.nome}</b> · ${c.cnpj} · UF ${c.uf}</span><button onclick="excluirCliente('${c.id}')">Excluir</button></div>`).join('');
+  let lst=[];
+  try{
+    const r=await fetch('/api/clientes');lst=await r.json();
+  }catch(e){
+    $('vitrine').style.display='block';$('listaCli').innerHTML='';
+    $('cliAtivo').innerHTML='<option value="">(backend offline)</option>';return;
+  }
+  $('cliAtivo').innerHTML=lst.map(c=>`<option value="${c.id}">${esc(c.nome)} — ${esc(c.cnpj)}</option>`).join('')||'<option value="">(cadastre uma empresa)</option>';
+  const ultimo=localStorage.getItem('central_cli');
+  if(ultimo&&lst.some(c=>c.id===ultimo))$('cliAtivo').value=ultimo;
+  $('listaCli').innerHTML=lst.map(c=>`<div class="cliente-linha"><span><b>${esc(c.nome)}</b> · ${esc(c.cnpj)} · UF ${esc(c.uf)}</span><button onclick="excluirCliente('${c.id}')">Excluir</button></div>`).join('');
   carregarDocs();
 }
+$('cliAtivo').addEventListener('change',()=>{localStorage.setItem('central_cli',$('cliAtivo').value);carregarDocs()});
 async function resumo(){
   if(!cliAtivo()){$('resumo').innerHTML='<p>Sem empresa.</p>';return}
   const r=await fetch('/api/docs/'+cliAtivo());const lst=await r.json();
@@ -171,7 +183,7 @@ function valida(c){if(!/^\d{44}$/.test(c))return '44 dígitos';if(c.slice(20,22)
 $('chave').addEventListener('input',()=>{const c=soD($('chave').value);$('fb').textContent=c.length+' / 44 dígitos'+(c.length===44?(valida(c)?' — '+valida(c):' — válida, UF emitente '+c.slice(0,2)):'')});
 $('fChave').addEventListener('input',carregarDocs);$('fSit').addEventListener('change',carregarDocs);
 let RES=[];
-function render(){const tb=$('tb');tb.innerHTML=RES.length?'':'<tr><td colspan="2">Nada ainda.</td></tr>';for(const r of RES){const tr=document.createElement('tr');tr.innerHTML=`<td class="mono">${r.chave}</td><td>${r.ok?'<span class="tag ok">XML baixado</span>':'<span class="tag err">'+(r.erro||'erro')+'</span>'}</td>`;tb.appendChild(tr)}}
+function render(){const tb=$('tb');tb.innerHTML=RES.length?'':'<tr><td colspan="2">Nada ainda.</td></tr>';for(const r of RES){const tr=document.createElement('tr');tr.innerHTML=`<td class="mono">${esc(r.chave)}</td><td>${r.ok?'<span class="tag ok">XML baixado</span>':'<span class="tag err">'+esc(r.erro||'erro')+'</span>'}</td>`;tb.appendChild(tr)}}
 async function buscarUma(){
   const c=soD($('chave').value);const e=valida(c);if(e){alert(e);return}
   if(!cliAtivo()){alert('Selecione a empresa');return}
@@ -188,11 +200,25 @@ async function buscarUma(){
 async function baixarLista(chaves){
   if(!cliAtivo()){alert('Selecione a empresa');return}
   if(!senhaS()){alert('Digite a senha do PFX');return}
+  if(chaves.length>50){alert('Lote limitado a 50 chaves por vez');return}
   log('Lote: '+chaves.length+' chave(s)...');
-  const r=await fetch('/api/sefaz/lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente_id:cliAtivo(),chaves,senha:senhaS(),ambiente:'prod'})});
-  const j=await r.json();(j.resultados||[]).forEach(x=>RES.unshift(x));render();
-  log(`Lote: ${j.ok}/${j.total} OK.`);carregarDocs();
+  prog(0,'Iniciando lote…');
+  let ok=0;
+  for(let i=0;i<chaves.length;i++){
+    const c=chaves[i];
+    prog(Math.round(i/chaves.length*100),`Baixando ${i+1}/${chaves.length}…`);
+    const fd=new FormData();fd.append('cliente_id',cliAtivo());fd.append('chave',c);fd.append('senha',senhaS());fd.append('ambiente','prod');
+    try{
+      const r=await fetch('/api/sefaz/xml',{method:'POST',body:fd});
+      if(!r.ok){const j=await r.json().catch(()=>({erro:'HTTP '+r.status}));throw new Error(j.erro||('HTTP '+r.status))}
+      RES.unshift({chave:c,ok:true});ok++;
+    }catch(err){RES.unshift({chave:c,ok:false,erro:String(err.message||err).slice(0,200)})}
+    render();
+  }
+  prog(100,`Lote: ${ok}/${chaves.length} OK.`);
+  log(`Lote: ${ok}/${chaves.length} OK.`);carregarDocs();
 }
+function prog(pct,txt){let el=$('progLote');if(!el){el=document.createElement('div');el.id='progLote';el.style.cssText='font-size:12px;margin-top:8px';$('btnLote').after(el)}el.innerHTML=`<progress value="${pct}" max="100" style="width:100%"></progress> ${esc(txt)}`}
 function baixarLote(){const chs=[...new Set(($('lote').value.match(/\d{44}/g)||[]))];if(!chs.length){alert('Cole ao menos 1 chave');return}baixarLista(chs)}
 async function importarPlanilha(){
   if(!$('planFile').files[0]){alert('Selecione a planilha');return}
@@ -205,18 +231,27 @@ async function importarPlanilha(){
   $('btnPlanLote').disabled=false;log('Planilha: '+j.validas.length+' chave(s).');
 }
 function baixarLotePlanilha(){if(!CHAVES_PLANILHA.length){alert('Importe a planilha primeiro');return}baixarLista(CHAVES_PLANILHA)}
-function tagStatus(s){if(s==='autorizada')return '<span class="tag ok">AUTORIZADO</span>';if(s==='ignorado')return '<span class="tag warn">Ignorado</span>';return '<span class="tag info">'+s+'</span>'}
+function tagStatus(s){if(s==='autorizada')return '<span class="tag ok">AUTORIZADO</span>';if(s==='ignorado')return '<span class="tag warn">Ignorado</span>';return '<span class="tag info">'+esc(s)+'</span>'}
 async function carregarDocs(){
   if(!cliAtivo())return;
   const r=await fetch('/api/docs/'+cliAtivo());DOCS=await r.json();
   const fC=soD($('fChave').value),fS=$('fSit').value;
   const lst=DOCS.filter(d=>(!fC||(d.chave||'').includes(fC))&&(!fS||d.status===fS));
   SEL=new Set([...SEL].filter(c=>lst.some(d=>d.chave===c)));
-  $('tbDocs').innerHTML=lst.length?'':'<tr><td colspan="10">Nada ainda.</td></tr>';
+  $('tbDocs').innerHTML=lst.length?'':'<tr><td colspan="11">Nada ainda.</td></tr>';
   for(const d of lst){const tr=document.createElement('tr');
-    tr.innerHTML=`<td><input type="checkbox" ${SEL.has(d.chave)?'checked':''} onchange="sel('${d.chave}',this.checked)"></td><td><a class="btn-xml" href="/api/docs/arquivo/${cliAtivo()}/${d.chave}" download="nfe_${d.chave}.xml">XML</a></td><td>${tagStatus(d.status)}</td><td>${d.status||'—'}</td><td>${d.dhemi?d.dhemi.slice(0,16).replace('T',' '):'—'}</td><td>${d.nnf||'—'}</td><td class="mono">${(d.chave||'').slice(0,18)}…</td><td>${d.vnf||'—'}</td><td class="mono">${d.emit_cnpj||d.dest_cnpj||'—'}</td><td>${d.emit||'—'}</td>`;
+    tr.innerHTML=`<td><input type="checkbox" ${SEL.has(d.chave)?'checked':''} onchange="sel('${d.chave}',this.checked)"></td><td><a class="btn-xml" href="/api/docs/arquivo/${cliAtivo()}/${d.chave}" download="nfe_${d.chave}.xml">XML</a> <a class="btn-xml" style="background:var(--azul)" href="/api/danfe/${cliAtivo()}/${d.chave}" target="_blank">DANFE</a> <button style="padding:4px 10px;font-size:11px" onclick="ciencia('${d.chave}')">Ciência</button></td><td>${tagStatus(d.status)}</td><td>${esc(d.status)||'—'}</td><td>${d.dhemi?esc(d.dhemi.slice(0,16).replace('T',' ')):'—'}</td><td>${esc(d.nnf)||'—'}</td><td class="mono">${esc((d.chave||'').slice(0,18))}…</td><td>${esc(d.vnf)||'—'}</td><td class="mono">${esc(d.emit_cnpj||d.dest_cnpj)||'—'}</td><td>${esc(d.emit)||'—'}</td>`;
     $('tbDocs').appendChild(tr)}
   barra();
+}
+async function ciencia(chave){
+  if(!senhaS()){alert('Digite a senha do PFX');return}
+  if(!confirm('Registrar Ciência da Operação na SEFAZ para esta chave?'))return;
+  const fd=new FormData();fd.append('cliente_id',cliAtivo());fd.append('chave',chave);fd.append('senha',senhaS());fd.append('ambiente','prod');
+  const r=await fetch('/api/evento/ciencia',{method:'POST',body:fd});
+  const j=await r.json().catch(()=>({erro:'HTTP '+r.status}));
+  alert(j.ok?('Ciência registrada ('+j.cstat+').'):('Falha: '+(j.erro||r.status)));
+  log('Ciência '+chave+': '+(j.ok?j.cstat:j.erro));
 }
 function sel(chave,on){on?SEL.add(chave):SEL.delete(chave);barra()}
 function alternarTodos(el){document.querySelectorAll('#tbDocs input[type=checkbox]').forEach(c=>{c.checked=el.checked;const ch=c.getAttribute('onchange').match(/'([^']+)'/)[1];el.checked?SEL.add(ch):SEL.delete(ch)});barra()}
@@ -250,6 +285,12 @@ async function baixarPacote(){
   const r=await fetch('/api/docs/pacote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente_id:cliAtivo()})});
   if(!r.ok){alert('Nada para zipar');return}
   const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='xml_docs.zip';a.click();
+}
+async function baixarExcel(){
+  if(!cliAtivo()){alert('Selecione a empresa');return}
+  const r=await fetch('/api/docs/excel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cliente_id:cliAtivo()})});
+  if(!r.ok){alert('Nada para exportar');return}
+  const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='documentos.xlsx';a.click();
 }
 recarregarClientes();
 </script>
