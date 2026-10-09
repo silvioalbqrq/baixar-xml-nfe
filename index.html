@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F2A44'/%3E%3Crect x='0' y='26' width='32' height='3' fill='%23C9A227'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='13' font-weight='bold' fill='white' text-anchor='middle'%3ECD%3C/text%3E%3C/svg%3E">
 <title>Central XML NF-e — Escritório Contábil</title>
 <style>
-:root{--azul:#0f2a44;--azul2:#1b3a5c;--dourado:#c9a24b;--dourado2:#b08a35;--fundo:#eef1f5;--card:#fff;--texto:#1e293b;--mut:#64748b;--borda:#dbe2ea;--verde:#15803d;--vermelho:#b91c1c}
+:root{--azul:#0f2a44;--azul2:#1a3a5c;--dourado:#c9a227;--dourado2:#a8861b;--fundo:#f4f2ec;--card:#fff;--texto:#1e293b;--mut:#64748b;--borda:#dbe2ea;--verde:#15803d;--vermelho:#b91c1c}
 *{box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--fundo);color:var(--texto);margin:0;display:flex;min-height:100vh}
-aside{width:230px;background:var(--azul);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--fundo);color:var(--texto);margin:0;display:flex;min-height:100vh;line-height:1.55}
+aside{width:230px;background:var(--azul);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:3px solid var(--dourado)}
 .logo{padding:20px 16px;font-size:20px;font-weight:800;border-bottom:1px solid #ffffff22}
 .logo span{color:var(--dourado)}
 .menu{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
@@ -17,7 +18,7 @@ aside{width:230px;background:var(--azul);color:#fff;display:flex;flex-direction:
 .menu button.ativo{border-left:4px solid var(--dourado)}
 .sair{color:#fca5a5 !important}
 main{flex:1;padding:20px;max-width:1300px}
-.topbar{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
+.topbar{background:var(--card);border:1px solid var(--borda);border-top:3px solid var(--dourado);border-radius:12px;padding:14px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
 .topbar h1{width:100%;margin:0 0 4px;font-size:20px}
 .topbar label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px;min-width:180px;flex:1}
 input,select,textarea{padding:10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:100%;background:#fff;color:var(--texto)}
@@ -25,7 +26,7 @@ button{background:var(--azul);color:#fff;border:0;border-radius:8px;padding:11px
 button.dourado{background:var(--dourado);color:#0f2a44}
 button.verde{background:var(--verde)}
 button:disabled{opacity:.5}
-.card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:16px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--borda);border-top:3px solid var(--dourado);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 8px 24px rgba(15,42,68,.08)}
 .secao{display:none}.secao.ativo{display:block}
 table{width:100%;font-size:12px;border-collapse:collapse}
 th{background:var(--azul);color:#fff;padding:9px 8px;text-align:left;position:sticky;top:0;font-size:11px;text-transform:uppercase}
@@ -44,11 +45,21 @@ tr:hover td{background:#f6f9fc}
 .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .filtros input,.filtros select{width:auto;flex:1;min-width:150px}
 .cliente-linha{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--borda);border-radius:8px;padding:8px;margin-top:8px;font-size:13px}
+h2{font-family:Georgia,'Times New Roman',serif;color:var(--azul);border-left:4px solid var(--dourado);padding-left:10px;margin:0 0 10px;font-size:18px}
+.topbar h1{font-family:Georgia,'Times New Roman',serif;color:var(--azul)}
+.hero-eyebrow{color:var(--dourado2);text-transform:uppercase;letter-spacing:.22em;font-size:11px;font-weight:700;margin:0 0 4px;width:100%}
+.brand-mark{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--dourado);color:var(--azul);font-weight:800;font-size:15px;margin-right:8px;vertical-align:middle}
+.hub-side{padding:12px 16px;border-top:1px solid #ffffff22;font-size:11px;color:#c6d4e4}
+.hub-side b{color:var(--dourado)}
+.hub-side a{color:var(--dourado);text-decoration:none}
+.hub-foot{background:var(--azul);color:#cdd9e8;border-top:4px solid var(--dourado);border-radius:12px;text-align:center;font-size:12px;padding:14px;line-height:1.7}
+.hub-foot a{color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
 </style>
 </head>
 <body>
 <aside>
-<div class="logo">Central <span>DFe</span></div>
+<div class="logo"><span class="brand-mark">CD</span>Central <span>DFe</span></div>
 <nav class="menu">
 <button class="ativo" onclick="tela('inicio',this)">Início</button>
 <button onclick="tela('empresas',this)">Empresas</button>
@@ -56,10 +67,12 @@ tr:hover td{background:#f6f9fc}
 <button onclick="tela('importar',this)">Importar XMLs</button>
 <button onclick="tela('planilha',this)">Importar planilha</button>
 </nav>
+<div class="hub-side">por <b>VMF Contabilidade</b><br><a href="https://silvioalbqrq.github.io/portal-fiscal/">Hub Fiscal</a></div>
 </aside>
 <main>
 <div id="vitrine" style="display:none;background:#fef3c7;border-left:4px solid var(--dourado);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px"><b>Modo demonstração</b> — sem backend local. Para usar de verdade, baixe o projeto e rode o <span class="mono">iniciar_central.bat</span> (<span class="mono">http://127.0.0.1:8004/</span>).</div>
 <div class="topbar">
+<p class="hero-eyebrow">Hub Fiscal · VMF Contabilidade · Reforma Tributária EC 132/2023 · LC 214/2025</p>
 <h1 id="tituloTotal">Documentos (0)</h1>
 <label>Empresa ativa<select id="cliAtivo"></select></label>
 <label>Senha do PFX (sessão, nunca salva)<input id="senhaSessao" type="password" autocomplete="off"></label>
@@ -132,6 +145,7 @@ tr:hover td{background:#f6f9fc}
 <div class="card"><h2>Resultado / log</h2>
 <table><thead><tr><th>Chave</th><th>Status</th></tr></thead><tbody id="tb"><tr><td colspan="2">Nada ainda.</td></tr></tbody></table>
 <div id="log"></div></div>
+<footer class="hub-foot"><strong style="color:#fff">Hub Fiscal · VMF Contabilidade</strong> · <a href="https://silvioalbqrq.github.io/portal-fiscal/">Voltar ao Hub</a><br>Central DFe — uso local via backend; confira valores críticos nos portais oficiais.</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);
