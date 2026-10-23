@@ -81,6 +81,9 @@ async def enviar_pfx(cid: str, pfx: UploadFile = File(...)):
 
 @app.delete("/api/clientes/{cid}")
 def excluir(cid: str):
+    reg, erro = _cliente_existe(cid)
+    if erro:
+        return erro
     lst = [c for c in _load() if c["id"] != cid]
     _save(lst)
     try:

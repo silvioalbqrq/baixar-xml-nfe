@@ -3,182 +3,391 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F2A44'/%3E%3Crect x='0' y='26' width='32' height='3' fill='%23C9A227'/%3E%3Ctext x='16' y='22' font-family='Arial' font-size='13' font-weight='bold' fill='white' text-anchor='middle'%3ECD%3C/text%3E%3C/svg%3E">
-<title>Central XML NF-e — Escritório Contábil</title>
+<meta name="theme-color" content="#7c3aed">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Ctext x='16' y='21' font-family='Arial' font-size='12' font-weight='bold' fill='white' text-anchor='middle'%3ECD%3C/text%3E%3C/svg%3E">
+<title>Central DFe — Escritório Contábil</title>
 <style>
-:root{--azul:#0f2a44;--azul2:#1a3a5c;--dourado:#c9a227;--dourado2:#a8861b;--fundo:#f4f2ec;--card:#fff;--texto:#1e293b;--mut:#64748b;--borda:#dbe2ea;--verde:#15803d;--vermelho:#b91c1c}
+:root{
+  --brand:#7c3aed;--brand-600:#6d28d9;--brand-700:#5b21b6;--brand-50:#f5f3ff;--brand-100:#ede9fe;
+  --pink:#ec4899;--bg:#f6f5fb;--card:#fff;--text:#1e293b;--muted:#64748b;--line:#ece9f5;
+  --green:#059669;--green-bg:#ecfdf5;--red:#e11d48;--red-bg:#fff1f2;--amber:#b45309;--amber-bg:#fffbeb;
+  --radius:20px;--shadow:0 8px 30px rgba(124,58,237,.08);
+}
 *{box-sizing:border-box}
-body{font-family:Georgia,'Times New Roman',serif;background:var(--fundo);color:var(--texto);margin:0;display:flex;min-height:100vh;line-height:1.55}
-aside{width:230px;background:var(--azul);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;border-right:3px solid var(--dourado)}
-.logo{padding:20px 16px;font-size:20px;font-weight:800;border-bottom:1px solid #ffffff22}
-.logo span{color:var(--dourado)}
-.menu{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
-.menu button{background:none;border:0;color:#cbd5e1;text-align:left;padding:11px 12px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;gap:10px;align-items:center}
-.menu button.ativo,.menu button:hover{background:var(--azul2);color:#fff}
-.menu button.ativo{border-left:4px solid var(--dourado)}
-.sair{color:#fca5a5 !important}
-main{flex:1;padding:20px;max-width:1300px}
-.topbar{background:var(--card);border:1px solid var(--borda);border-top:3px solid var(--dourado);border-radius:12px;padding:14px 16px;display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
-.topbar h1{width:100%;margin:0 0 4px;font-size:20px}
-.topbar label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px;min-width:180px;flex:1}
-input,select,textarea{padding:10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:100%;background:#fff;color:var(--texto)}
-button{background:var(--azul);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer;font-size:13px}
-button.dourado{background:var(--dourado);color:#0f2a44}
-button.verde{background:var(--verde)}
-button:disabled{opacity:.5}
-.card{background:var(--card);border:1px solid var(--borda);border-top:3px solid var(--dourado);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 8px 24px rgba(15,42,68,.08)}
-.secao{display:none}.secao.ativo{display:block}
-table{width:100%;font-size:12px;border-collapse:collapse}
-th{background:var(--azul);color:#fff;padding:9px 8px;text-align:left;position:sticky;top:0;font-size:11px;text-transform:uppercase}
-td{padding:8px;border-bottom:1px solid var(--borda)}
-tr:hover td{background:#f6f9fc}
-.mono{font-family:ui-monospace,monospace}
-.tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.tag.ok{background:#dcfce7;color:var(--verde)}
-.tag.warn{background:#fef3c7;color:#92400e}
-.tag.err{background:#fee2e2;color:var(--vermelho)}
-.tag.info{background:#e0e7ff;color:#3730a3}
-#log{font-size:12px;color:var(--mut);max-height:150px;overflow:auto;margin-top:8px}
-.barra-sel{background:var(--card);border:1px solid var(--dourado);border-radius:12px;padding:12px 16px;display:none;justify-content:space-between;align-items:center;position:sticky;bottom:12px;margin-bottom:16px;font-weight:700}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;font-size:14px}
+button{font:inherit;cursor:pointer;border:0}
+input,select,textarea{font:inherit}
+a{color:var(--brand)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px}
+.mono{font-family:ui-monospace,Consolas,monospace}
+
+/* topo */
+.topbar{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.84);backdrop-filter:blur(14px);border-bottom:1px solid var(--brand-100)}
+.topbar-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:14px;letter-spacing:-.02em;background:linear-gradient(135deg,#7c3aed,#ec4899);box-shadow:0 8px 20px rgba(236,72,153,.25);flex:none}
+.brand-name{font-weight:800;letter-spacing:-.01em;font-size:15px;white-space:nowrap}
+.brand-name span{color:var(--brand)}
+.brand-sub{font-size:11px;color:var(--muted);white-space:nowrap}
+.topbar-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+/* hero */
+.hero{background:radial-gradient(600px 220px at 20% 0%,#ddd6fe 0%,transparent 60%),radial-gradient(600px 220px at 85% 10%,#fecdd3 0%,transparent 60%),linear-gradient(180deg,#fff,#f6f5fb);border-bottom:1px solid var(--brand-100);padding:22px 0 24px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:18px;align-items:stretch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.hero-main{padding:24px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#f1f5f9;color:var(--muted);white-space:nowrap}
+.chip.brand{background:var(--brand-100);color:var(--brand-700)}
+.chip.green{background:var(--green-bg);color:#047857}
+.chip.amber{background:var(--amber-bg);color:var(--amber)}
+.chip.red{background:var(--red-bg);color:#be123c}
+.hero-main h1{font-size:clamp(24px,3vw,34px);line-height:1.15;letter-spacing:-.02em;margin:6px 0 8px}
+.lead{font-size:13px;color:var(--muted);margin:0;max-width:720px}
+.lead b{color:var(--text)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:18px}
+.stat{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:16px;padding:11px 8px;text-align:center}
+.stat b{display:block;font-size:21px;font-weight:900;letter-spacing:-.02em;color:var(--brand-700);line-height:1.2}
+.stat span{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-top:2px}
+.stat.green{background:var(--green-bg);border-color:#d1fae5}
+.stat.green b{color:var(--green)}
+.stat.red{background:var(--red-bg);border-color:#ffe4e6}
+.stat.red b{color:var(--red)}
+.hero-side{padding:20px}
+.hero-side h3{margin:0 0 8px;font-size:14px;font-weight:800}
+.rules{list-style:none;margin:0;padding:0;font-size:12.5px;color:#475569}
+.rules li{position:relative;padding-left:14px;margin:7px 0}
+.rules li::before{content:'•';position:absolute;left:0;color:var(--brand);font-weight:900}
+.codebox{margin-top:14px;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:10px 12px;font-family:ui-monospace,Consolas,monospace;font-size:11px;line-height:1.6}
+.codebox span{color:#94a3b8}
+
+/* aviso demo */
+.demo{display:none;margin:0 0 16px;padding:11px 14px;background:var(--amber-bg);border:1px solid #fde68a;color:#92400e;border-radius:14px;font-size:12px}
+.demo a{color:var(--brand);font-weight:700}
+
+/* layout */
+main.wrap{padding-top:20px;padding-bottom:10px}
+.layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:16px;align-items:start}
+.panel{padding:20px}
+.panel-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.panel-head h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em}
+.step{width:28px;height:28px;border-radius:10px;display:grid;place-items:center;background:var(--brand-100);color:var(--brand-700);font-weight:800;font-size:13px;flex:none}
+.hint{font-size:12px;color:var(--muted);margin:6px 0}
+.hint.warn{background:var(--amber-bg);border:1px solid #fde68a;color:#92400e;padding:8px 10px;border-radius:10px}
+.field{display:block;margin-top:10px}
+.field>span{display:block;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;font-size:13px;background:#fff;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:#a78bfa;box-shadow:0 0 0 3px var(--brand-100)}
+input[type=file]{background:#f8fafc;border-style:dashed;padding:8px;font-size:12px;color:var(--muted)}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand);padding:0;vertical-align:middle}
+textarea{resize:vertical}
+.grid-2{display:grid;grid-template-columns:1.6fr .8fr;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;transition:.15s;margin-top:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-brand{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}
+.btn-brand:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(124,58,237,.32)}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-dark:hover{background:#1e293b}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#047857}
+.btn-ghost{background:#fff;color:#334155;border:1px solid #e2e8f0}
+.btn-ghost:hover{background:#f8fafc}
+.btn-sm{padding:8px 12px;border-radius:10px;font-size:12px;margin-top:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row .btn{margin-top:0}
+#progLote{flex-basis:100%;margin-top:4px;font-size:12px;color:var(--muted)}
+#progLote progress{width:100%;accent-color:var(--brand)}
+
+/* empresas */
+.clientes{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.cliente-linha{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:#faf9ff;border-radius:14px;padding:9px 10px}
+.avatar{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;background:linear-gradient(135deg,#7c3aed,#ec4899);flex:none}
+.cliente-info{flex:1;min-width:0}
+.cliente-info b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cliente-info span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-x{background:none;color:var(--red);font-size:11px;font-weight:700;padding:4px;border-radius:6px;flex:none}
+.btn-x:hover{text-decoration:underline}
+.vazio{border:1px dashed #d8d4ea;border-radius:12px;padding:10px;text-align:center;font-size:11px;color:#94a3b8}
+
+/* abas */
+.right-col{display:flex;flex-direction:column;gap:16px}
+.tabs{display:flex;gap:6px;background:#fff;border:1px solid var(--brand-100);border-radius:16px;padding:6px;box-shadow:0 8px 30px rgba(124,58,237,.06)}
+.tab{flex:1;padding:10px 8px;border-radius:11px;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;white-space:nowrap}
+.tab:hover{background:#f8fafc}
+.tab.ativo{background:var(--brand-600);color:#fff;box-shadow:0 6px 16px rgba(109,40,217,.22)}
+.secao{display:none}
+.secao.ativo{display:block}
+#chave{margin-top:4px}
+#fb{margin:4px 0 10px}
+#planRes{margin:8px 0}
+
+/* documentos */
+.docs{margin-top:16px;padding:20px}
+.docs-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.docs-head .panel-head{margin-bottom:2px}
+.filters{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin:12px 0}
+.filters .field{margin:0;min-width:170px;flex:1;max-width:280px}
+.filters .btn{margin-top:0}
+.table-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{position:sticky;top:0;z-index:1;background:var(--brand-50);color:var(--brand-700);text-align:left;padding:10px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td{padding:9px;border-top:1px solid #f1f0f7;vertical-align:middle}
+td:nth-child(2){min-width:185px;white-space:nowrap}
+td.nowrap{white-space:nowrap}
+tbody tr:hover td{background:#faf9ff}
+td .btn-xml,td .btn-danfe,td .btn-ciencia{display:inline-flex;align-items:center;padding:5px 8px;border-radius:8px;font-size:10px;font-weight:700;text-decoration:none;white-space:nowrap;margin:1px 2px 1px 0}
+.btn-xml{background:var(--green);color:#fff}
+.btn-danfe{background:#0f172a;color:#fff}
+.btn-ciencia{background:#fff;border:1px solid #e2e8f0;color:#475569}
+.btn-ciencia:hover{background:#f8fafc}
+.muted{color:#94a3b8}
+.tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.tag.ok{background:var(--green-bg);color:#047857}
+.tag.warn{background:var(--amber-bg);color:var(--amber)}
+.tag.err{background:var(--red-bg);color:#be123c}
+.tag.info{background:var(--brand-50);color:var(--brand-700)}
+
+/* resultado + log */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.result-wrap{overflow:auto;max-height:240px;border:1px solid var(--line);border-radius:12px}
+.dark{background:#0f172a;border-color:#1e293b;color:#e2e8f0;overflow:hidden}
+.dark-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.dark-head h3{margin:0;font-size:12px;font-weight:800;color:#fff}
+.link{background:none;color:#94a3b8;font-size:11px;font-weight:700;padding:0}
+.link:hover{color:#fff}
+#log{max-height:240px;overflow:auto;padding:12px 16px;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#cbd5e1}
+#log div{padding:2px 0}
+
+/* barra de selecao */
+.barra-sel{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;display:none;align-items:center;gap:16px;padding:10px 14px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border:1px solid var(--brand-100);border-radius:14px;box-shadow:0 12px 32px rgba(15,23,42,.14);font-size:13px;font-weight:700;max-width:calc(100vw - 32px)}
 .barra-sel.visivel{display:flex}
-.btn-xml{background:var(--verde);color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;text-decoration:none;font-weight:700;white-space:nowrap}
-.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.filtros input,.filtros select{width:auto;flex:1;min-width:150px}
-.cliente-linha{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--borda);border-radius:8px;padding:8px;margin-top:8px;font-size:13px}
-h2{font-family:Georgia,'Times New Roman',serif;color:var(--azul);border-left:4px solid var(--dourado);padding-left:10px;margin:0 0 10px;font-size:18px}
-.topbar h1{font-family:Georgia,'Times New Roman',serif;color:var(--azul)}
-.hero-eyebrow{color:var(--dourado2);text-transform:uppercase;letter-spacing:.22em;font-size:11px;font-weight:700;margin:0 0 4px;width:100%}
-.brand-mark{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--dourado);color:var(--azul);font-weight:800;font-size:15px;margin-right:8px;vertical-align:middle}
-.hub-side{padding:12px 16px;border-top:1px solid #ffffff22;font-size:11px;color:#c6d4e4}
-.hub-side b{color:var(--dourado)}
-.hub-side a{color:var(--dourado);text-decoration:none}
-.hub-foot{background:var(--azul);color:#cdd9e8;border-top:4px solid var(--dourado);border-radius:12px;text-align:center;font-size:12px;padding:14px;line-height:1.7}
-.hub-foot a{color:#fff}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.barra-sel .btn{margin-top:0;padding:8px 14px;font-size:12px}
+
+/* rodape */
+.footer{max-width:1200px;margin:0 auto;padding:22px 16px 80px;text-align:center;font-size:11px;color:#94a3b8}
+.footer a{color:var(--brand);font-weight:700;text-decoration:none}
+
+.status{background:#f1f5f9;color:var(--muted)}
+.status::before{content:'●';margin-right:5px}
+.status.ok{background:var(--green-bg);color:#047857}
+.status.err{background:var(--red-bg);color:#be123c}
+
+@media(max-width:920px){
+  .hero-grid,.layout,.bottom-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .brand-sub{display:none}
+}
+@media(max-width:620px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .topbar-actions .chip{display:none}
+  .tabs{flex-direction:column}
+  .filters{flex-direction:column;align-items:stretch}
+  .filters .field{max-width:none}
+  .filters .btn{width:100%}
+  .grid-2{grid-template-columns:1fr}
+  .docs{padding:16px}
+  .hero-main,.hero-side,.panel{padding:16px}
+}
 </style>
 </head>
 <body>
-<aside>
-<div class="logo"><span class="brand-mark">CD</span>Central <span>DFe</span></div>
-<nav class="menu">
-<button class="ativo" onclick="tela('inicio',this)">Início</button>
-<button onclick="tela('empresas',this)">Empresas</button>
-<button onclick="tela('baixar',this)">Baixar SEFAZ</button>
-<button onclick="tela('importar',this)">Importar XMLs</button>
-<button onclick="tela('planilha',this)">Importar planilha</button>
-</nav>
-<div class="hub-side">por <b>VMF Contabilidade</b><br><a href="https://silvioalbqrq.github.io/portal-fiscal/">Hub Fiscal</a></div>
-</aside>
-<main>
-<div id="vitrine" style="display:none;background:#fef3c7;border-left:4px solid var(--dourado);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px"><b>Modo demonstração</b> — sem backend local. Para usar de verdade, baixe o projeto e rode o <span class="mono">iniciar_central.bat</span> (<span class="mono">http://127.0.0.1:8004/</span>).</div>
-<div class="topbar">
-<p class="hero-eyebrow">Hub Fiscal · VMF Contabilidade · Reforma Tributária EC 132/2023 · LC 214/2025</p>
-<h1 id="tituloTotal">Documentos (0)</h1>
-<label>Empresa ativa<select id="cliAtivo"></select></label>
-<label>Senha do PFX (sessão, nunca salva)<input id="senhaSessao" type="password" autocomplete="off"></label>
-<label>Situação<select id="fSit"><option value="">Todas as situações</option><option value="autorizada">Autorizada</option><option value="sem protocolo">Sem protocolo</option><option value="ignorado">Ignorado</option></select></label>
-<label>Buscar pela chave<input id="fChave" class="mono" placeholder="trecho da chave"></label>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div class="brand">
+      <div class="brand-mark">CD</div>
+      <div>
+        <div class="brand-name">Central DFe <span>• Local</span></div>
+        <div class="brand-sub">Multi-empresas • SEFAZ oficial • Sem mensalidade</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="apiBadge" class="chip status">backend…</span>
+      <button class="btn btn-dark btn-sm" onclick="testarBackend()">Testar :8004</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div id="vitrine" class="demo"><b>Modo demonstração</b> — sem backend local. Para usar de verdade, baixe o projeto e rode o <span class="mono">iniciar_central.bat</span> (<span class="mono">http://127.0.0.1:8004/</span>). <a href="https://github.com/silvioalbqrq/baixar-xml-nfe" target="_blank" rel="noopener">Ver no GitHub</a>.</div>
+    <div class="hero-grid">
+      <section class="card hero-main">
+        <div class="chips">
+          <span class="chip brand">SEFAZ DistribuiçãoDFe</span>
+          <span class="chip green">NF-e • NFC-e</span>
+          <span class="chip amber">Certificado A1 .pfx</span>
+        </div>
+        <h1>Baixe XMLs por chave de acesso,<br>com o certificado de cada empresa.</h1>
+        <p class="lead"><b>1)</b> Cadastre as empresas &nbsp;→&nbsp; <b>2)</b> anexe o <b>.pfx</b> da empresa dona dos XMLs &nbsp;→&nbsp; <b>3)</b> cole as <b>chaves de 44 dígitos</b> e baixe. O backend consulta a <b>SEFAZ nacional</b> (consChNFe) com mTLS — sem site pago.</p>
+        <div class="stats">
+          <div class="stat"><b id="stEmp">0</b><span>Empresas</span></div>
+          <div class="stat"><b id="stDocs">0</b><span>Documentos</span></div>
+          <div class="stat green"><b id="stAut">0</b><span>Autorizadas</span></div>
+          <div class="stat red"><b id="stErr">0</b><span>Falhas</span></div>
+        </div>
+      </section>
+      <aside class="card hero-side">
+        <h3>Regras da SEFAZ</h3>
+        <ul class="rules">
+          <li>Cada empresa baixa com o <b>próprio certificado A1</b>.</li>
+          <li>A3 (token/cartão) <b>não funciona</b> neste backend.</li>
+          <li>Erro <b>137</b> = nada encontrado para esse CNPJ (sem autorização/manifestação).</li>
+          <li>O <b>.pfx</b> fica salvo nesta máquina em <span class="mono">certs/</span>. A senha <b>não é salva</b>: digite a cada sessão.</li>
+          <li>Lotes grandes geram <b>656</b> (consumo indevido). Use aos poucos.</li>
+        </ul>
+        <div class="codebox">iniciar_central.bat<br><span>http://127.0.0.1:8004/</span></div>
+      </aside>
+    </div>
+  </div>
 </div>
 
-<div id="t-inicio" class="card secao ativo">
-<h2>Início</h2>
-<div id="resumo" style="display:flex;gap:12px;flex-wrap:wrap"></div>
-<p style="color:var(--mut);font-size:13px">Selecione a empresa no topo e use o menu. A tabela de documentos fica em Baixar SEFAZ e Importar XMLs.</p>
-</div>
+<main class="wrap">
+  <div class="layout">
+    <section class="card panel">
+      <div class="panel-head"><div class="step">1</div><h2>Empresas + certificado</h2></div>
+      <label class="field"><span>Apelido / Razão</span><input id="cNome" placeholder="Ex.: Loja Matriz"></label>
+      <div class="grid-2">
+        <label class="field"><span>CNPJ</span><input id="cCnpj" class="mono" placeholder="00.000.000/0001-00"></label>
+        <label class="field"><span>UF (código)</span><input id="cUf" class="mono" value="23" maxlength="2"></label>
+      </div>
+      <button class="btn btn-brand" onclick="criarCliente()">+ Cadastrar empresa</button>
+      <div id="listaCli" class="clientes"></div>
+      <label class="field"><span>Empresa ativa</span><select id="cliAtivo"><option value="">(carregando…)</option></select></label>
+      <label class="field"><span>Senha do PFX (sessão, nunca salva)</span><input id="senhaSessao" type="password" autocomplete="off" placeholder="••••"></label>
+      <label class="field"><span>Enviar .pfx da empresa ativa</span><input id="pfxUp" type="file" accept=".pfx,.p12"></label>
+      <button class="btn btn-dark" onclick="enviarPfx()">Enviar PFX</button>
+    </section>
 
-<div id="t-empresas" class="card secao">
-<h2>Empresas</h2>
-<input id="cNome" placeholder="Nome (ex.: HLMO)">
-<input id="cCnpj" class="mono" placeholder="CNPJ (14 dígitos)" style="margin-top:8px">
-<input id="cUf" class="mono" value="23" maxlength="2" style="margin-top:8px">
-<button class="dourado" onclick="criarCliente()" style="margin-top:8px">Cadastrar empresa</button>
-<div id="listaCli"></div>
-<div style="margin-top:12px"><label>Enviar .pfx da empresa ativa <input id="pfxUp" type="file" accept=".pfx,.p12"></label>
-<button onclick="enviarPfx()" style="margin-top:8px">Enviar PFX</button></div>
-</div>
+    <section class="right-col">
+      <div class="tabs" role="tablist">
+        <button class="tab ativo" onclick="tela('baixar',this)">Baixar SEFAZ</button>
+        <button class="tab" onclick="tela('importar',this)">Importar XMLs</button>
+        <button class="tab" onclick="tela('planilha',this)">Importar planilha</button>
+      </div>
 
-<div id="t-baixar" class="card secao">
-<h2>Consultar pela chave</h2>
-<input id="chave" class="mono" maxlength="60" placeholder="Chave de Acesso (44 dígitos)">
-<div id="fb" style="font-size:12px;margin-top:4px;color:var(--mut)">0 / 44 dígitos</div><br>
-<button id="btnBuscar" class="dourado" onclick="buscarUma()">Consultar e baixar XML</button>
-<h3>Lote de chaves</h3>
-<textarea id="lote" rows="4" class="mono" placeholder="Cole chaves, uma por linha"></textarea><br><br>
-<button id="btnLote" onclick="baixarLote()">Baixar lote</button>
-</div>
+      <div id="t-baixar" class="card panel secao ativo">
+        <div class="panel-head"><div class="step">2</div><h2>Chaves de acesso (44 dígitos)</h2></div>
+        <p class="hint">Cole do Excel/ERP. A consulta usa o certificado da empresa ativa. Lote limitado a 50 chaves por vez.</p>
+        <input id="chave" class="mono" maxlength="60" placeholder="3526… (44 dígitos)">
+        <div id="fb" class="hint mono">0 / 44 dígitos</div>
+        <button id="btnBuscar" class="btn btn-brand" onclick="buscarUma()">Consultar e baixar XML</button>
+        <label class="field"><span>Lote de chaves (uma por linha)</span><textarea id="lote" rows="4" class="mono" placeholder="Cole as chaves, uma por linha"></textarea></label>
+        <div class="row">
+          <button id="btnLote" class="btn btn-dark" onclick="baixarLote()">Baixar lote</button>
+          <button class="btn btn-ghost" onclick="baixarPacote()">Exportar tudo (.zip)</button>
+          <button class="btn btn-ghost" onclick="baixarExcel()">Exportar Excel</button>
+        </div>
+        <p class="hint warn">A SEFAZ bloqueia consultas em excesso (erro 656). Se acontecer, aguarde 1 hora.</p>
+      </div>
 
-<div id="t-importar" class="card secao">
-<h2>Importar XMLs</h2>
-<div style="display:flex;gap:8px;flex-wrap:wrap">
-<label>Arquivos .xml <input id="xmlFiles" type="file" accept=".xml" multiple></label>
-<label>Pasta inteira <input id="xmlDir" type="file" webkitdirectory></label>
-<label>Arquivo .zip <input id="xmlZip" type="file" accept=".zip"></label>
-</div>
-<button class="dourado" onclick="enviarDocs()" style="margin-top:8px">Enviar documentos</button>
-<button onclick="baixarPacote()">Exportar tudo (.zip)</button>
-<button onclick="baixarExcel()">Exportar Excel</button>
-</div>
+      <div id="t-importar" class="card panel secao">
+        <div class="panel-head"><div class="step">2</div><h2>Importar XMLs</h2></div>
+        <p class="hint">Envie arquivos avulsos, uma pasta inteira ou um .zip. XMLs duplicados são ignorados.</p>
+        <label class="field"><span>Arquivos .xml</span><input id="xmlFiles" type="file" accept=".xml" multiple></label>
+        <label class="field"><span>Pasta inteira</span><input id="xmlDir" type="file" webkitdirectory></label>
+        <label class="field"><span>Arquivo .zip</span><input id="xmlZip" type="file" accept=".zip"></label>
+        <button class="btn btn-brand" onclick="enviarDocs()">Enviar documentos</button>
+      </div>
 
-<div id="t-planilha" class="card secao">
-<h2>Importar planilha (.xlsx / .csv / .txt)</h2>
-<input id="planFile" type="file" accept=".xlsx,.xlsm,.csv,.txt">
-<button class="dourado" onclick="importarPlanilha()" style="margin-top:8px">Extrair chaves</button>
-<div id="planRes" style="font-size:13px;margin-top:8px"></div>
-<button id="btnPlanLote" onclick="baixarLotePlanilha()" disabled style="margin-top:8px">Baixar lote da planilha</button>
-</div>
+      <div id="t-planilha" class="card panel secao">
+        <div class="panel-head"><div class="step">2</div><h2>Importar planilha</h2></div>
+        <p class="hint">Aceita .xlsx, .xlsm, .csv e .txt. Extrai todas as chaves de 44 dígitos e valida o DV.</p>
+        <label class="field"><span>Planilha</span><input id="planFile" type="file" accept=".xlsx,.xlsm,.csv,.txt"></label>
+        <button class="btn btn-brand" onclick="importarPlanilha()">Extrair chaves</button>
+        <div id="planRes" class="hint"></div>
+        <button id="btnPlanLote" class="btn btn-dark" onclick="baixarLotePlanilha()" disabled>Baixar lote da planilha</button>
+      </div>
+    </section>
+  </div>
 
-<div class="card secao ativo" id="blocoTabela">
-<h2>Documentos da empresa ativa</h2>
-<div style="overflow-x:auto">
-<table>
-<thead><tr><th><input type="checkbox" id="chkTodos" onclick="alternarTodos(this)"></th><th>Ações</th><th>Status</th><th>Situação</th><th>Emissão</th><th>Número</th><th>Chave</th><th>Valor</th><th>CNPJ/CPF</th><th>Nome</th></tr></thead>
-<tbody id="tbDocs"><tr><td colspan="11">Nada ainda.</td></tr></tbody>
-</table>
-</div>
-</div>
+  <div class="card docs" id="blocoTabela">
+    <div class="docs-head">
+      <div>
+        <div class="panel-head"><div class="step">3</div><h2 id="tituloTotal">Documentos (0)</h2></div>
+        <p class="hint">XMLs da empresa ativa. Baixe individualmente ou exporte tudo em ZIP/Excel.</p>
+      </div>
+      <span id="totalValor" class="chip brand">R$ 0,00</span>
+    </div>
+    <div class="filters">
+      <label class="field"><span>Situação</span><select id="fSit">
+        <option value="">Todas as situações</option>
+        <option value="autorizada">Autorizada</option>
+        <option value="sem protocolo">Sem protocolo</option>
+        <option value="ignorado">Ignorado</option>
+      </select></label>
+      <label class="field"><span>Buscar pela chave</span><input id="fChave" class="mono" placeholder="trecho da chave"></label>
+      <button class="btn btn-ghost" onclick="baixarPacote()">ZIP</button>
+      <button class="btn btn-ghost" onclick="baixarExcel()">Excel</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th><input type="checkbox" id="chkTodos" onclick="alternarTodos(this)"></th><th>Ações</th><th>Status</th><th>Emissão</th><th>Número</th><th>Chave</th><th>Valor</th><th>CNPJ/CPF</th><th>Nome</th></tr></thead>
+        <tbody id="tbDocs"><tr><td colspan="9">Nada ainda.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="card panel">
+      <div class="panel-head"><h2>Resultado</h2></div>
+      <div class="result-wrap">
+        <table><thead><tr><th>Chave</th><th>Status</th></tr></thead><tbody id="tb"><tr><td colspan="2">Nada ainda.</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="card dark">
+      <div class="dark-head"><h3>Log</h3><button class="link" onclick="$('log').innerHTML=''">limpar</button></div>
+      <div id="log"></div>
+    </div>
+  </div>
+</main>
 
 <div class="barra-sel" id="barraSel">
-<span id="txtSel">0 selecionados</span>
-<button class="verde" onclick="baixarSelecionados()">Baixar XMLs</button>
+  <span id="txtSel">0 selecionados</span>
+  <button class="btn btn-green" onclick="baixarSelecionados()">Baixar XMLs</button>
 </div>
 
-<div class="card"><h2>Resultado / log</h2>
-<table><thead><tr><th>Chave</th><th>Status</th></tr></thead><tbody id="tb"><tr><td colspan="2">Nada ainda.</td></tr></tbody></table>
-<div id="log"></div></div>
-<footer class="hub-foot"><strong style="color:#fff">Hub Fiscal · VMF Contabilidade</strong> · <a href="https://silvioalbqrq.github.io/portal-fiscal/">Voltar ao Hub</a><br>Central DFe — uso local via backend; confira valores críticos nos portais oficiais.</footer>
-</main>
+<footer class="footer">Central DFe · VMF Contabilidade · <a href="https://silvioalbqrq.github.io/portal-fiscal/">Hub Fiscal</a><br>Uso local · SEFAZ DistribuiçãoDFe consChNFe · certificado A1 · confira valores críticos nos portais oficiais.</footer>
+
 <script>
 const $=id=>document.getElementById(id);
 const soD=s=>(s||'').replace(/\D/g,'');
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtCnpj=n=>{n=soD(n);return n.length===14?n.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'):n};
 let CHAVES_PLANILHA=[], DOCS=[], SEL=new Set();
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+m;$('log').prepend(d)}
-function tela(nome,btn){document.querySelectorAll('main .secao').forEach(s=>{if(s.id!=='blocoTabela')s.classList.remove('ativo')});document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('ativo'));$('t-'+nome).classList.add('ativo');btn.classList.add('ativo');if(nome==='inicio')resumo()}
+function tela(nome,btn){document.querySelectorAll('main .secao').forEach(s=>s.classList.remove('ativo'));document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('ativo'));$('t-'+nome).classList.add('ativo');btn.classList.add('ativo')}
 function cliAtivo(){return $('cliAtivo').value}
 function senhaS(){return $('senhaSessao').value}
+async function testarBackend(){
+  const b=$('apiBadge');
+  try{
+    const r=await fetch('/api/status');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    b.className='chip status ok';b.textContent='backend no ar';b.title=j.status||'';
+  }catch(e){
+    b.className='chip status err';b.textContent='rode :8004';b.title='Backend local fora do ar';
+  }
+}
 async function recarregarClientes(){
   let lst=[];
   try{
     const r=await fetch('/api/clientes');lst=await r.json();
   }catch(e){
     $('vitrine').style.display='block';$('listaCli').innerHTML='';
+    $('stEmp').textContent='0';
     $('cliAtivo').innerHTML='<option value="">(backend offline)</option>';return;
   }
-  $('cliAtivo').innerHTML=lst.map(c=>`<option value="${c.id}">${esc(c.nome)} — ${esc(c.cnpj)}</option>`).join('')||'<option value="">(cadastre uma empresa)</option>';
+  $('vitrine').style.display='none';
+  $('stEmp').textContent=lst.length;
+  $('cliAtivo').innerHTML=lst.map(c=>`<option value="${c.id}">${esc(c.nome)} — ${fmtCnpj(c.cnpj)}</option>`).join('')||'<option value="">(cadastre uma empresa)</option>';
   const ultimo=localStorage.getItem('central_cli');
   if(ultimo&&lst.some(c=>c.id===ultimo))$('cliAtivo').value=ultimo;
-  $('listaCli').innerHTML=lst.map(c=>`<div class="cliente-linha"><span><b>${esc(c.nome)}</b> · ${esc(c.cnpj)} · UF ${esc(c.uf)}</span><button onclick="excluirCliente('${c.id}')">Excluir</button></div>`).join('');
+  $('listaCli').innerHTML=lst.length?lst.map(c=>`<div class="cliente-linha"><div class="avatar">${esc((c.nome||'?').slice(0,1).toUpperCase())}</div><div class="cliente-info"><b>${esc(c.nome)}</b><span class="mono">${fmtCnpj(c.cnpj)} • UF ${esc(c.uf)}</span></div><button class="btn-x" onclick="excluirCliente('${c.id}')">excluir</button></div>`).join(''):'<div class="vazio">Nenhuma empresa. Cadastre o CNPJ e envie o .pfx acima.</div>';
   carregarDocs();
 }
 $('cliAtivo').addEventListener('change',()=>{localStorage.setItem('central_cli',$('cliAtivo').value);carregarDocs()});
-async function resumo(){
-  if(!cliAtivo()){$('resumo').innerHTML='<p>Sem empresa.</p>';return}
-  const r=await fetch('/api/docs/'+cliAtivo());const lst=await r.json();
-  const aut=lst.filter(d=>d.status==='autorizada').length;
-  const tot=lst.reduce((s,d)=>s+parseFloat(String(d.vnf||'').replace(',','.')||0),0);
-  $('resumo').innerHTML=`<div class="card"><b>${lst.length}</b> documentos</div><div class="card"><b>${aut}</b> autorizadas</div><div class="card"><b>R$ ${tot.toFixed(2)}</b> total</div>`;
-  $('tituloTotal').textContent=`Documentos (${lst.length})`;
-}
 async function criarCliente(){
   const r=await fetch('/api/clientes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:$('cNome').value,cnpj:soD($('cCnpj').value),uf:soD($('cUf').value)||'23'})});
   const j=await r.json();if(!r.ok){alert(j.erro||'Erro');return}
@@ -197,7 +406,7 @@ function valida(c){if(!/^\d{44}$/.test(c))return '44 dígitos';if(c.slice(20,22)
 $('chave').addEventListener('input',()=>{const c=soD($('chave').value);$('fb').textContent=c.length+' / 44 dígitos'+(c.length===44?(valida(c)?' — '+valida(c):' — válida, UF emitente '+c.slice(0,2)):'')});
 $('fChave').addEventListener('input',carregarDocs);$('fSit').addEventListener('change',carregarDocs);
 let RES=[];
-function render(){const tb=$('tb');tb.innerHTML=RES.length?'':'<tr><td colspan="2">Nada ainda.</td></tr>';for(const r of RES){const tr=document.createElement('tr');tr.innerHTML=`<td class="mono">${esc(r.chave)}</td><td>${r.ok?'<span class="tag ok">XML baixado</span>':'<span class="tag err">'+esc(r.erro||'erro')+'</span>'}</td>`;tb.appendChild(tr)}}
+function render(){const tb=$('tb');tb.innerHTML=RES.length?'':'<tr><td colspan="2">Nada ainda.</td></tr>';for(const r of RES){const tr=document.createElement('tr');tr.innerHTML=`<td class="mono">${esc(r.chave)}</td><td>${r.ok?'<span class="tag ok">XML baixado</span>':'<span class="tag err">'+esc(r.erro||'erro')+'</span>'}</td>`;tb.appendChild(tr)}$('stErr').textContent=RES.filter(r=>!r.ok).length}
 async function buscarUma(){
   const c=soD($('chave').value);const e=valida(c);if(e){alert(e);return}
   if(!cliAtivo()){alert('Selecione a empresa');return}
@@ -232,7 +441,7 @@ async function baixarLista(chaves){
   prog(100,`Lote: ${ok}/${chaves.length} OK.`);
   log(`Lote: ${ok}/${chaves.length} OK.`);carregarDocs();
 }
-function prog(pct,txt){let el=$('progLote');if(!el){el=document.createElement('div');el.id='progLote';el.style.cssText='font-size:12px;margin-top:8px';$('btnLote').after(el)}el.innerHTML=`<progress value="${pct}" max="100" style="width:100%"></progress> ${esc(txt)}`}
+function prog(pct,txt){let el=$('progLote');if(!el){el=document.createElement('div');el.id='progLote';$('btnLote').closest('.row').after(el)}el.innerHTML=`<progress value="${pct}" max="100"></progress> ${esc(txt)}`}
 function baixarLote(){const chs=[...new Set(($('lote').value.match(/\d{44}/g)||[]))];if(!chs.length){alert('Cole ao menos 1 chave');return}baixarLista(chs)}
 async function importarPlanilha(){
   if(!$('planFile').files[0]){alert('Selecione a planilha');return}
@@ -247,14 +456,23 @@ async function importarPlanilha(){
 function baixarLotePlanilha(){if(!CHAVES_PLANILHA.length){alert('Importe a planilha primeiro');return}baixarLista(CHAVES_PLANILHA)}
 function tagStatus(s){if(s==='autorizada')return '<span class="tag ok">AUTORIZADO</span>';if(s==='ignorado')return '<span class="tag warn">Ignorado</span>';return '<span class="tag info">'+esc(s)+'</span>'}
 async function carregarDocs(){
-  if(!cliAtivo())return;
+  if(!cliAtivo()){DOCS=[];$('stDocs').textContent='0';$('stAut').textContent='0';$('totalValor').textContent='R$ 0,00';$('tbDocs').innerHTML='<tr><td colspan="9">Nada ainda.</td></tr>';return}
   const r=await fetch('/api/docs/'+cliAtivo());DOCS=await r.json();
+  const aut=DOCS.filter(d=>d.status==='autorizada').length;
+  const tot=DOCS.reduce((s,d)=>s+(parseFloat(String(d.vnf||'').replace(',','.'))||0),0);
+  $('stDocs').textContent=DOCS.length;$('stAut').textContent=aut;
+  $('totalValor').textContent='R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  $('tituloTotal').textContent=`Documentos (${DOCS.length})`;
   const fC=soD($('fChave').value),fS=$('fSit').value;
   const lst=DOCS.filter(d=>(!fC||(d.chave||'').includes(fC))&&(!fS||d.status===fS));
   SEL=new Set([...SEL].filter(c=>lst.some(d=>d.chave===c)));
-  $('tbDocs').innerHTML=lst.length?'':'<tr><td colspan="11">Nada ainda.</td></tr>';
+  $('tbDocs').innerHTML=lst.length?'':'<tr><td colspan="9">Nada ainda.</td></tr>';
   for(const d of lst){const tr=document.createElement('tr');
-    tr.innerHTML=`<td><input type="checkbox" ${SEL.has(d.chave)?'checked':''} onchange="sel('${d.chave}',this.checked)"></td><td><a class="btn-xml" href="/api/docs/arquivo/${cliAtivo()}/${d.chave}" download="nfe_${d.chave}.xml">XML</a> <a class="btn-xml" style="background:var(--azul)" href="/api/danfe/${cliAtivo()}/${d.chave}" target="_blank">DANFE</a> <button style="padding:4px 10px;font-size:11px" onclick="ciencia('${d.chave}')">Ciência</button></td><td>${tagStatus(d.status)}</td><td>${esc(d.status)||'—'}</td><td>${d.dhemi?esc(d.dhemi.slice(0,16).replace('T',' ')):'—'}</td><td>${esc(d.nnf)||'—'}</td><td class="mono">${esc((d.chave||'').slice(0,18))}…</td><td>${esc(d.vnf)||'—'}</td><td class="mono">${esc(d.emit_cnpj||d.dest_cnpj)||'—'}</td><td>${esc(d.emit)||'—'}</td>`;
+    const real=/^\d{44}$/.test(d.chave||'');
+    const acoes=real
+      ?`<a class="btn-xml" href="/api/docs/arquivo/${cliAtivo()}/${esc(d.chave)}" download="nfe_${esc(d.chave)}.xml">XML</a><a class="btn-danfe" href="/api/danfe/${cliAtivo()}/${esc(d.chave)}" target="_blank" rel="noopener">DANFE</a><button class="btn-ciencia" data-chave="${esc(d.chave)}" onclick="ciencia(this.dataset.chave)">Ciência</button>`
+      :'<span class="muted">—</span>';
+    tr.innerHTML=`<td><input type="checkbox" data-chave="${esc(d.chave)}" ${SEL.has(d.chave)?'checked':''} onchange="sel(this.dataset.chave,this.checked)"></td><td>${acoes}</td><td>${tagStatus(d.status)}</td><td class="nowrap">${d.dhemi?esc(d.dhemi.slice(0,16).replace('T',' ')):'—'}</td><td>${esc(d.nnf)||'—'}</td><td class="mono">${esc((d.chave||'').slice(0,18))}…</td><td>${esc(d.vnf)||'—'}</td><td class="mono">${esc(fmtCnpj(d.emit_cnpj||d.dest_cnpj))||'—'}</td><td>${esc(d.emit)||'—'}</td>`;
     $('tbDocs').appendChild(tr)}
   barra();
 }
@@ -268,11 +486,11 @@ async function ciencia(chave){
   log('Ciência '+chave+': '+(j.ok?j.cstat:j.erro));
 }
 function sel(chave,on){on?SEL.add(chave):SEL.delete(chave);barra()}
-function alternarTodos(el){document.querySelectorAll('#tbDocs input[type=checkbox]').forEach(c=>{c.checked=el.checked;const ch=c.getAttribute('onchange').match(/'([^']+)'/)[1];el.checked?SEL.add(ch):SEL.delete(ch)});barra()}
+function alternarTodos(el){document.querySelectorAll('#tbDocs input[type=checkbox]').forEach(c=>{c.checked=el.checked;const ch=c.dataset.chave;el.checked?SEL.add(ch):SEL.delete(ch)});barra()}
 function barra(){
   const tot=[...SEL].reduce((s,c)=>{const d=DOCS.find(x=>x.chave===c);return s+(parseFloat((d&&d.vnf||'').replace(',','.'))||0)},0);
   $('barraSel').classList.toggle('visivel',SEL.size>0);
-  $('txtSel').textContent=`${SEL.size} selecionados (R$ ${tot.toFixed(2)})`;
+  $('txtSel').textContent=`${SEL.size} selecionados (R$ ${tot.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})})`;
 }
 async function baixarSelecionados(){
   for(const c of SEL){const a=document.createElement('a');a.href=`/api/docs/arquivo/${cliAtivo()}/${c}`;a.download=`nfe_${c}.xml`;a.click();await new Promise(r=>setTimeout(r,400))}
@@ -307,6 +525,7 @@ async function baixarExcel(){
   const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='documentos.xlsx';a.click();
 }
 recarregarClientes();
+testarBackend();
 </script>
 </body>
 </html>
